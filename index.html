@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#FFF8EE"><meta name="description" content="Москва психологическая — восемь остановок авторского аудиогида «Беспокойство». Интерактивная схема маршрута.">
+<title>Москва психологическая — Беспокойство</title>
+<link rel="stylesheet" href="styles.css">
+<script defer src="data.js"></script><script defer src="route.js"></script><script defer src="app.js"></script>
+</head>
+<body>
+<div class="bsp-app" id="bsp-app">
+<header class="bsp-header">
+ <a class="bsp-brand" href="#" aria-label="Беспокойство — начало"><span class="bsp-brand-symbol" aria-hidden="true">б.</span>беспокойство</a>
+ <span class="bsp-header-note">Город снаружи. Истории внутри.</span>
+ <button class="bsp-about-button bsp-text-button" id="bsp-about">О прогулке <span aria-hidden="true"><span class="bsp-external-icon" aria-hidden="true"></span></span></button>
+</header>
+<div class="bsp-layout">
+<aside class="bsp-sidebar" id="bsp-sidebar" aria-label="Остановки прогулки">
+ <div class="bsp-sidebar-intro"><span class="bsp-eyebrow">АВТОРСКИЙ АУДИОГИД / 01</span><h1>Москва<br><em>психологическая</em></h1><p>Прогулка по городу<br>и немного — по себе.</p><div class="bsp-meta"><span>8 остановок</span><span>В своём темпе</span></div></div>
+ <div class="bsp-list-heading"><span>МАРШРУТ ПРОГУЛКИ</span><span id="bsp-progress-count">0 / 8</span></div>
+ <ol class="bsp-stop-list" id="bsp-stop-list"></ol>
+ <div class="bsp-sidebar-bottom"><div class="bsp-progress-track"><span id="bsp-progress-bar"></span></div><p id="bsp-storage-note">Ваш прогресс сохраняется на этом устройстве</p></div>
+</aside>
+<main class="bsp-main">
+ <div class="bsp-mobile-title"><span>Москва психологическая</span><span>8 остановок</span></div>
+ <nav class="bsp-tabs" aria-label="Вид прогулки"><button id="bsp-tab-map" aria-pressed="true">Карта</button><button id="bsp-tab-list" aria-pressed="false">Остановки <span>08</span></button></nav>
+ <section class="bsp-map-panel" aria-label="Интерактивная схема восьми остановок">
+  <div class="bsp-map-heading"><div><span class="bsp-eyebrow">ПОСМОТРЕТЬ НА ГОРОД ИНАЧЕ</span><h2>Восемь мест. <em>Одна прогулка.</em></h2></div><span class="bsp-scheme-badge"><i></i> Схема маршрута</span></div>
+  <div class="bsp-map-canvas" id="bsp-map-canvas">
+   <svg id="bsp-map" viewBox="0 0 1100 850" preserveAspectRatio="xMidYMin meet" role="group" aria-label="Схема маршрута. Север сверху. Выберите номер остановки."></svg>
+   <div class="bsp-compass" aria-label="Север сверху"><span>С</span><svg viewBox="0 0 24 38" aria-hidden="true"><path d="M12 2L21 32 12 25 3 32Z" fill="none" stroke="currentColor"/><path d="M12 2V25L3 32Z" fill="currentColor"/></svg></div>
+   <div class="bsp-map-tools" aria-label="Управление картой"><button id="bsp-zoom-in" aria-label="Приблизить">+</button><button id="bsp-zoom-out" aria-label="Отдалить">−</button><button id="bsp-fit" aria-label="Весь маршрут" title="Весь маршрут"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4V9M15 4H20V9M4 15V20H9M20 15V20H15"/></svg></button></div>
+   <button id="bsp-show-card" class="bsp-reopen" hidden>О выбранной остановке <span class="bsp-external-icon" aria-hidden="true"></span></button>
+   <article class="bsp-card" id="bsp-card" aria-label="Выбранная остановка">
+    <div class="bsp-card-top"><span id="bsp-card-index" class="bsp-eyebrow"></span><button id="bsp-card-collapse" class="bsp-icon-button" aria-label="Свернуть карточку" aria-expanded="true">⌄</button><button id="bsp-card-close" class="bsp-icon-button" aria-label="Закрыть карточку">×</button></div>
+    <h3 id="bsp-card-title"></h3>
+    <div class="bsp-card-content"><p id="bsp-card-address"></p><p class="bsp-card-caution" id="bsp-card-caution" hidden></p><div class="bsp-card-actions"><button class="bsp-primary" id="bsp-open-stop">Открыть остановку <span><span class="bsp-external-icon" aria-hidden="true"></span></span></button><a class="bsp-navigation" id="bsp-navigate" target="_blank" rel="noopener noreferrer">Идти сюда <span class="bsp-external-icon" aria-hidden="true"></span></a></div><div class="bsp-card-bottom"><button id="bsp-visited" aria-pressed="false">○ Пройдено</button><button id="bsp-next-stop">Следующая →</button></div></div>
+   </article>
+   <div class="bsp-map-caption"><span class="bsp-dashed-sample"></span> Условные связи между точками</div>
+  </div>
+  <div class="bsp-map-footer"><p>Точки — по координатам. Пунктир — порядок остановок, не пешеходный путь.</p><button id="bsp-route-info" class="bsp-text-button">Что нужно проверить <span class="bsp-external-icon" aria-hidden="true"></span></button></div>
+ </section>
+</main>
+</div>
+<footer class="bsp-player" aria-label="Постоянный аудиоплеер">
+ <button class="bsp-player-art" id="bsp-player-open" aria-label="Открыть текущую аудиоостановку">01</button>
+ <div class="bsp-player-title"><span class="bsp-eyebrow" id="bsp-audio-eyebrow">АУДИОИСТОРИЯ / 01</span><strong id="bsp-audio-title">Особняк Рябушинского</strong><span id="bsp-audio-status" role="status">Нажмите воспроизведение, когда будете готовы</span></div>
+ <div class="bsp-playback"><button id="bsp-audio-prev" class="bsp-icon-button" aria-label="Предыдущая аудиодорожка">←</button><button id="bsp-play" class="bsp-play-button" aria-label="Воспроизвести"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5L20 12 9 19Z" fill="currentColor"/></svg></button><button id="bsp-audio-next" class="bsp-icon-button" aria-label="Следующая аудиодорожка">→</button></div>
+ <div class="bsp-player-timeline"><span id="bsp-current-time">0:00</span><input id="bsp-seek" type="range" min="0" max="100" value="0" step="0.1" aria-label="Позиция воспроизведения"><span id="bsp-duration">—:—</span></div>
+ <button id="bsp-mute" class="bsp-icon-button bsp-mute" aria-label="Выключить звук" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9H8L13 5V19L8 15H4ZM17 8Q23 12 17 16"/></svg></button>
+ <audio id="bsp-audio" preload="metadata" src="audio/01.mp3"></audio>
+</footer>
+<div class="bsp-toast" id="bsp-toast" role="status" hidden></div>
+<dialog class="bsp-dialog" id="bsp-dialog"><button id="bsp-dialog-close" class="bsp-icon-button bsp-dialog-close" aria-label="Закрыть окно">×</button><div id="bsp-dialog-content"></div></dialog>
+</div>
+</body></html>
