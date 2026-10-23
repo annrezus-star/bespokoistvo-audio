@@ -1,5 +1,5 @@
 {
-  "status": "not-added",
+  "status": "blocked",
   "geometry": null,
   "profile": "walking",
   "reason": "Подтверждённая пешеходная геометрия отсутствует; запрос к маршрутизатору FOSSGIS routed-foot заблокирован сетевым прокси среды (403).",
@@ -48,5 +48,10 @@
       "coordinates": null
     }
   ],
-  "accessNote": "Свободный проход во двор Психологического института не подтверждён. Координаты объектов не являются координатами входов."
+  "accessNote": "Свободный проход во двор Психологического института не подтверждён. Координаты объектов не являются координатами входов.",
+  "geometryFile": null,
+  "provider": "FOSSGIS OSRM routed-foot / OpenStreetMap",
+  "sourceUrl": "https://routing.openstreetmap.de/routed-foot/route/v1/foot/",
+  "blocker": "Среда разрешает только сетевой preset package_managers; домен routing.openstreetmap.de отсутствует в активном allowlist, CONNECT возвращает 403 до получения ответа маршрутизатора.",
+  "requiredAction": "Применить и опубликовать сохранённый сетевой черновик среды; затем получить walking-геометрию и проверить семь участков, в особенности подход с общедоступной улицы к 07."
 }

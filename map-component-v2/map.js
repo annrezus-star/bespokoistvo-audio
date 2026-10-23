@@ -4,6 +4,7 @@
   const base = new URL('.', document.currentScript.src);
   const asset = name => new URL(name, base).href;
   const number = n => String(n).padStart(2, '0');
+  const instances = new WeakMap();
   const reducedMotion = () => matchMedia('(prefers-reduced-motion:reduce)').matches;
 
   window.BespokoistvoMap = Object.freeze({
@@ -14,6 +15,7 @@
       if (!stops.length || new Set(stops.map(s => s.id)).size !== stops.length || stops.some(s => !s.id || !s.title || s.coordinates.length !== 2 || !s.coordinates.every(Number.isFinite) || Math.abs(s.coordinates[0]) > 180 || Math.abs(s.coordinates[1]) > 85)) {
         throw new TypeError('Проверьте уникальные id и coordinates [долгота, широта].');
       }
+      instances.get(container)?.destroy();
       const bounds = stops.reduce((b, s) => b.extend(s.coordinates), new maplibregl.LngLatBounds());
       const host = document.createElement('div');
       host.className = 'bspm-host';
@@ -35,6 +37,8 @@
       const retryButton = stateBox.querySelector('button');
       const routeNote = root.querySelector('.bspm-route-note');
       let destroyed = false, selected = null, popup = null, loaded = false, overview = true;
+      const routeAbort = new AbortController();
+      let routeState = 'loading', routeGeometry = null;
       let status = 'loading', settled = false, layoutFrame = 0, resizeFrame = 0, visibilityFrame = 0, loadTimer = 0;
       let resolveReady, rejectReady;
       const ready = new Promise((resolve, reject) => { resolveReady = resolve; rejectReady = reject; });
@@ -47,7 +51,7 @@
         bounds: bounds.toArray(),
         fitBoundsOptions: {padding: {top: 82, right: sidePadding(initialSize.width), bottom: 82, left: sidePadding(initialSize.width)}, maxZoom: 20},
         attributionControl: false, renderWorldCopies: false, dragRotate: false, touchPitch: false,
-        cooperativeGestures: options.cooperativeGestures ?? true, minZoom: 2, maxZoom: 20
+        cooperativeGestures: options.cooperativeGestures ?? false, scrollZoom: options.scrollZoom ?? true, minZoom: 2, maxZoom: 20
       });
       map.touchZoomRotate.disableRotation();
       map.addControl(new maplibregl.NavigationControl({showCompass: false}), 'top-right');
@@ -127,7 +131,7 @@
         if (!realFeatures) return;
         loaded = true; clearTimeout(loadTimer); setState('ready'); layoutMarkers();
         if (!settled) { settled = true; resolveReady(); }
-        container.dispatchEvent(new CustomEvent('bespokoistvo:mapready', {detail: {provider: 'OpenFreeMap', route: 'not-added'}}));
+        container.dispatchEvent(new CustomEvent('bespokoistvo:mapready', {detail: {provider: 'OpenFreeMap', route: routeState}}));
       }
       function layoutMarkers() {
         if (destroyed) return;
@@ -169,6 +173,8 @@
           }
         });
         map.getSource('bspm-anchors')?.setData({type: 'FeatureCollection', features});
+        const labels = w >= 760 ? markers.map((m, i) => ({type: 'Feature', properties: {title: m.s.shortTitle || m.s.title, order: m.s.order}, geometry: {type: 'Point', coordinates: map.unproject([positions[i].x, positions[i].y]).toArray()}})) : [];
+        map.getSource('bspm-stop-labels')?.setData({type: 'FeatureCollection', features: labels});
         illustrations.forEach(({image}) => { image.hidden = w < 600 || map.getZoom() < 16; });
       }
       function scheduleLayout() {
@@ -202,7 +208,7 @@
         markers.forEach(item => item.button.setAttribute('aria-pressed', String(item.s.id === id)));
         hideCard();
         const card = document.createElement('div'); card.className = 'bspm-tooltip'; card.setAttribute('role', 'status');
-        const index = document.createElement('span'); index.className = 'bspm-popup-number'; index.textContent = `ОСТАНОВКА ${number(s.order)}`;
+        const index = document.createElement('span'); index.className = 'bspm-popup-number'; index.textContent = `Остановка ${number(s.order)} из ${number(stops.length)}`;
         const title = document.createElement('strong'); title.className = 'bspm-popup-title'; title.textContent = s.title;
         const address = document.createElement('p'); address.className = 'bspm-popup-address'; address.textContent = s.address || '';
         card.append(index, title, address);
@@ -217,11 +223,30 @@
         }
         return true;
       }
+      function installRoute() {
+        if (!routeGeometry || !map.getSource('bspm-anchors') || map.getSource('bspm-route')) return;
+        map.addSource('bspm-route', {type: 'geojson', data: routeGeometry});
+        map.addLayer({id: 'bspm-route-outline', type: 'line', source: 'bspm-route', layout: {'line-join': 'round', 'line-cap': 'round'}, paint: {'line-color': '#39412C', 'line-width': 6, 'line-opacity': .7}}, 'bspm-leaders');
+        map.addLayer({id: 'bspm-route-line', type: 'line', source: 'bspm-route', layout: {'line-join': 'round', 'line-cap': 'round'}, paint: {'line-color': '#E8B4C7', 'line-width': 4.5}}, 'bspm-leaders');
+      }
+      function installStopLabels() {
+        // Прозрачная область 48×48 резервирует место для DOM-номера в механизме коллизий SDK.
+        if (!map.hasImage('bspm-stop-hitbox')) map.addImage('bspm-stop-hitbox', {width: 48, height: 48, data: new Uint8Array(48 * 48 * 4)});
+        map.addSource('bspm-stop-labels', {type: 'geojson', data: {type: 'FeatureCollection', features: []}});
+        map.addLayer({id: 'bspm-stop-names', type: 'symbol', source: 'bspm-stop-labels', layout: {
+          'icon-image': 'bspm-stop-hitbox', 'icon-allow-overlap': false, 'icon-ignore-placement': false,
+          'text-field': ['get', 'title'], 'text-font': ['Noto Sans Regular'], 'text-size': 11.5,
+          'text-variable-anchor': ['left', 'right', 'top', 'bottom'], 'text-radial-offset': 2.4,
+          'text-justify': 'auto', 'text-max-width': 13, 'text-padding': 7,
+          'text-allow-overlap': false, 'text-ignore-placement': false, 'symbol-sort-key': ['get', 'order']
+        }, paint: {'text-color': '#39412C', 'text-halo-color': '#FFF8EE', 'text-halo-width': 2}});
+      }
       function onStyleLoad() {
         if (destroyed) return;
         map.addSource('bspm-anchors', {type: 'geojson', data: {type: 'FeatureCollection', features: []}});
         map.addLayer({id: 'bspm-leaders', type: 'line', source: 'bspm-anchors', filter: ['==', ['geometry-type'], 'LineString'], paint: {'line-color': '#626653', 'line-width': 1, 'line-opacity': .65}});
         map.addLayer({id: 'bspm-anchor-dots', type: 'circle', source: 'bspm-anchors', filter: ['==', ['geometry-type'], 'Point'], paint: {'circle-radius': 2.2, 'circle-color': '#39412C', 'circle-stroke-width': 1, 'circle-stroke-color': '#FFF8EE'}});
+        installRoute(); installStopLabels();
         if (overview) fitRoute({animate: false}); else scheduleVisibility();
         scheduleLayout();
       }
@@ -241,6 +266,7 @@
       resizeObserver.observe(container); resizeObserver.observe(canvas);
       map.on('style.load', onStyleLoad); map.on('idle', confirmMap); map.on('move', scheduleLayout);
       map.on('dragstart', () => { overview = false; });
+      map.on('wheel', () => { overview = false; });
       map.on('zoomstart', e => { if (e.originalEvent) overview = false; });
       map.on('error', e => {
         if (loaded) return;
@@ -255,11 +281,27 @@
         map.setStyle(options.style || asset('style.json')); startLoadTimer();
       };
       startLoadTimer(); fitRoute({animate: false});
-      return Object.freeze({
+      const routePromise = window.BespokoistvoRoute
+        ? window.BespokoistvoRoute.load(base, stops, routeAbort.signal)
+        : Promise.resolve({status: 'blocked', geometry: null});
+      routePromise.then(bundle => {
+        if (destroyed) return;
+        routeState = bundle.status; routeGeometry = bundle.geometry;
+        if (routeGeometry) {
+          routeGeometry.features.forEach(f => f.geometry.coordinates.forEach(p => bounds.extend(p)));
+          routeNote.textContent = 'Пешеходный маршрут · 8 остановок'; installRoute();
+          if (overview) fitRoute({animate: false, keepCard: Boolean(popup)});
+        } else routeNote.textContent = 'Пешая линия пока не добавлена';
+      }).catch(error => {
+        if (destroyed || error.name === 'AbortError') return;
+        routeState = 'error'; routeNote.textContent = 'Не удалось загрузить сохранённый маршрут';
+      });
+      const api = Object.freeze({
         ready, selectStop, fitRoute,
-        getStatus: () => ({basemap: status, selectedStop: selected, route: 'not-added', overview, zoom: map.getZoom(), center: map.getCenter().toArray(), destroyed}),
+        getStatus: () => ({basemap: status, selectedStop: selected, route: routeState, overview, zoom: map.getZoom(), center: map.getCenter().toArray(), destroyed}),
         destroy() {
           if (destroyed) return; destroyed = true;
+          routeAbort.abort(); if (instances.get(container) === api) instances.delete(container);
           clearTimeout(loadTimer); cancelAnimationFrame(layoutFrame); cancelAnimationFrame(resizeFrame); cancelAnimationFrame(visibilityFrame);
           resizeObserver.disconnect(); overlayObserver.disconnect(); popup?.remove();
           markers.forEach(m => m.marker.remove()); illustrations.forEach(m => m.marker.remove());
@@ -267,6 +309,8 @@
           if (!settled) { settled = true; rejectReady(new Error('Компонент удалён до загрузки карты.')); }
         }
       });
+      instances.set(container, api);
+      return api;
     }
   });
 })();
