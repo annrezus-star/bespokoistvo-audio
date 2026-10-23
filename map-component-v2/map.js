@@ -1,0 +1,272 @@
+/* MapLibre GL JS 5.6.1 + OpenFreeMap. Самостоятельный компонент, версия 2. */
+(() => {
+  'use strict';
+  const base = new URL('.', document.currentScript.src);
+  const asset = name => new URL(name, base).href;
+  const number = n => String(n).padStart(2, '0');
+  const reducedMotion = () => matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  window.BespokoistvoMap = Object.freeze({
+    create(container, options = {}) {
+      if (!(container instanceof HTMLElement)) throw new TypeError('Нужен DOM-контейнер карты.');
+      if (!window.maplibregl) throw new Error('Сначала подключите vendor/maplibre-gl.js версии 5.6.1.');
+      const stops = (options.stops || window.BespokoistvoStops || []).map(s => ({...s, coordinates: [...s.coordinates]}));
+      if (!stops.length || new Set(stops.map(s => s.id)).size !== stops.length || stops.some(s => !s.id || !s.title || s.coordinates.length !== 2 || !s.coordinates.every(Number.isFinite) || Math.abs(s.coordinates[0]) > 180 || Math.abs(s.coordinates[1]) > 85)) {
+        throw new TypeError('Проверьте уникальные id и coordinates [долгота, широта].');
+      }
+      const bounds = stops.reduce((b, s) => b.extend(s.coordinates), new maplibregl.LngLatBounds());
+      const host = document.createElement('div');
+      host.className = 'bspm-host';
+      host.style.cssText = 'width:100%;height:100%;min-width:0;display:block';
+      const shadow = host.attachShadow({mode: 'open'});
+      for (const href of [asset('vendor/maplibre-gl.css'), asset('map.css')]) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet'; link.href = href; shadow.append(link);
+      }
+      const root = document.createElement('section');
+      root.className = 'bspm-root bspm-pending';
+      root.style.cssText = 'position:relative;width:100%;height:100%;overflow:hidden';
+      root.setAttribute('aria-label', 'Карта остановок прогулки');
+      root.innerHTML = '<div class="bspm-canvas" style="position:absolute;inset:0"></div><button class="bspm-fit" type="button" aria-label="Показать весь маршрут"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4V9M15 4H20V9M4 15V20H9M20 15V20H15"/></svg>Весь маршрут</button><div class="bspm-route-note">Пешая линия пока не добавлена</div><div class="bspm-state" role="status"><strong>Загружаем карту Москвы</strong><p>Улицы и здания — OpenFreeMap / OpenStreetMap.</p><button type="button" hidden>Повторить</button></div>';
+      shadow.append(root); container.append(host);
+      const canvas = root.querySelector('.bspm-canvas');
+      const stateBox = root.querySelector('.bspm-state');
+      const fitButton = root.querySelector('.bspm-fit');
+      const retryButton = stateBox.querySelector('button');
+      const routeNote = root.querySelector('.bspm-route-note');
+      let destroyed = false, selected = null, popup = null, loaded = false, overview = true;
+      let status = 'loading', settled = false, layoutFrame = 0, resizeFrame = 0, visibilityFrame = 0, loadTimer = 0;
+      let resolveReady, rejectReady;
+      const ready = new Promise((resolve, reject) => { resolveReady = resolve; rejectReady = reject; });
+      ready.catch(() => {});
+
+      const initialSize = container.getBoundingClientRect();
+      const sidePadding = width => width < 600 ? 34 : 44;
+      const map = new maplibregl.Map({
+        container: canvas, style: options.style || asset('style.json'),
+        bounds: bounds.toArray(),
+        fitBoundsOptions: {padding: {top: 82, right: sidePadding(initialSize.width), bottom: 82, left: sidePadding(initialSize.width)}, maxZoom: 20},
+        attributionControl: false, renderWorldCopies: false, dragRotate: false, touchPitch: false,
+        cooperativeGestures: options.cooperativeGestures ?? true, minZoom: 2, maxZoom: 20
+      });
+      map.touchZoomRotate.disableRotation();
+      map.addControl(new maplibregl.NavigationControl({showCompass: false}), 'top-right');
+      map.addControl(new maplibregl.AttributionControl({
+        compact: false,
+        customAttribution: '<a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a> · <a href="https://openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> · <a href="https://github.com/maputnik/osm-liberty" target="_blank" rel="noopener">Liberty</a>'
+      }), 'bottom-right');
+      const markers = stops.map(s => {
+        const button = document.createElement('button');
+        button.type = 'button'; button.className = 'bspm-marker';
+        const disc = document.createElement('span'); disc.className = 'bspm-marker-disc'; disc.textContent = number(s.order); button.append(disc);
+        button.setAttribute('aria-label', `${number(s.order)}. ${s.title}`);
+        button.setAttribute('aria-pressed', 'false');
+        let down = null, moved = false;
+        button.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; moved = false; });
+        button.addEventListener('pointermove', e => { if (down && Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) moved = true; });
+        button.addEventListener('pointercancel', () => { moved = true; down = null; });
+        button.addEventListener('click', e => {
+          if (moved && e.detail !== 0) { moved = false; return; }
+          e.stopPropagation(); selectStop(s.id);
+        });
+        const marker = new maplibregl.Marker({element: button, anchor: 'center'}).setLngLat(s.coordinates).addTo(map);
+        return {s, button, marker, offset: [0, 0]};
+      });
+      const illustrations = stops.filter(s => s.illustration).map(s => {
+        const image = document.createElement('img');
+        image.src = s.illustration; image.className = 'bspm-illustration'; image.alt = ''; image.setAttribute('aria-hidden', 'true');
+        if (s.illustrationCredit) image.title = s.illustrationCredit;
+        const marker = new maplibregl.Marker({element: image, anchor: 'bottom', offset: [45, -32]}).setLngLat(s.coordinates).addTo(map);
+        return {marker, image};
+      });
+
+      function measureFooter() {
+        const attribution = root.querySelector('.maplibregl-ctrl-attrib');
+        const height = Math.ceil(attribution?.getBoundingClientRect().height || 32);
+        root.style.setProperty('--bspm-attribution-height', `${height}px`);
+        const noteHeight = Math.ceil(routeNote.getBoundingClientRect().height || 22);
+        const bottom = height + noteHeight + 24;
+        root.style.setProperty('--bspm-card-bottom', `${bottom}px`);
+        return {height, bottom};
+      }
+      function hideCard() {
+        if (!popup) return;
+        overlayObserver.unobserve(popup); popup.remove(); popup = null;
+      }
+      function fitRoute({animate = true, keepCard = false} = {}) {
+        if (destroyed) return;
+        if (!keepCard) hideCard();
+        overview = true;
+        const footer = measureFooter(), r = canvas.getBoundingClientRect();
+        if (r.width < 100 || r.height < 160) return;
+        const bottom = popup ? r.bottom - popup.getBoundingClientRect().top + 30 : footer.bottom + 24;
+        map.fitBounds(bounds, {
+          padding: {top: 82, right: sidePadding(r.width), bottom: Math.min(bottom, r.height - 140), left: sidePadding(r.width)},
+          maxZoom: 20, linear: true, duration: animate && !reducedMotion() ? 350 : 0
+        });
+        scheduleLayout();
+      }
+      function setState(next, title = '', text = '') {
+        status = next; stateBox.hidden = next === 'ready';
+        root.classList.toggle('bspm-pending', next === 'loading'); root.classList.toggle('bspm-failed', next === 'error');
+        stateBox.querySelector('strong').textContent = title; stateBox.querySelector('p').textContent = text;
+        retryButton.hidden = next !== 'error';
+      }
+      function fail(message) {
+        if (destroyed || loaded) return;
+        setState('error', 'Карта не загрузилась', message);
+        if (!settled) { settled = true; rejectReady(new Error(message)); }
+      }
+      function startLoadTimer() {
+        clearTimeout(loadTimer);
+        loadTimer = setTimeout(() => fail('Не получены улицы и здания. Проверьте доступ к tiles.openfreemap.org и попробуйте ещё раз.'), 25000);
+      }
+      function confirmMap() {
+        if (destroyed || loaded || !map.isStyleLoaded()) return;
+        const realFeatures = map.getSource('openmaptiles')?.type === 'vector' && map.queryRenderedFeatures().some(f => f.source === 'openmaptiles' && ['building', 'transportation', 'transportation_name'].includes(f.sourceLayer));
+        if (!realFeatures) return;
+        loaded = true; clearTimeout(loadTimer); setState('ready'); layoutMarkers();
+        if (!settled) { settled = true; resolveReady(); }
+        container.dispatchEvent(new CustomEvent('bespokoistvo:mapready', {detail: {provider: 'OpenFreeMap', route: 'not-added'}}));
+      }
+      function layoutMarkers() {
+        if (destroyed) return;
+        const w = canvas.clientWidth, h = canvas.clientHeight;
+        if (w < 80 || h < 80) return;
+        const anchors = markers.map(m => map.project(m.s.coordinates));
+        const positions = anchors.map(p => ({x: p.x, y: p.y}));
+        const i5 = markers.findIndex(m => m.s.order === 5), i6 = markers.findIndex(m => m.s.order === 6);
+        // Разводятся только экранные номера. Для 05/06 сохраняется направление юго-восток.
+        for (let pass = 0; pass < 48; pass++) {
+          let changed = false;
+          for (let i = 0; i < positions.length; i++) for (let j = i + 1; j < positions.length; j++) {
+            const a = positions[i], b = positions[j];
+            const visible = [anchors[i], anchors[j]].every(p => p.x >= -50 && p.x < w + 50 && p.y >= -50 && p.y < h + 50);
+            if (!visible) continue;
+            let dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
+            if (d >= 50) continue;
+            if (d < .1) { dx = j % 2 ? 1 : -1; dy = 1; d = Math.SQRT2; }
+            const push = (50 - d) / 2 + .1;
+            a.x -= dx / d * push; a.y -= dy / d * push; b.x += dx / d * push; b.y += dy / d * push; changed = true;
+          }
+          if (i5 >= 0 && i6 >= 0) {
+            const a = positions[i5], b = positions[i6], dx = anchors[i6].x - anchors[i5].x, dy = anchors[i6].y - anchors[i5].y;
+            const d = Math.hypot(dx, dy), current = Math.hypot(b.x - a.x, b.y - a.y);
+            if (d < 70 && d > .01 && (b.x <= a.x || b.y <= a.y || current < 50)) {
+              const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2, distance = Math.max(50, current);
+              a.x = cx - dx / d * distance / 2; a.y = cy - dy / d * distance / 2;
+              b.x = cx + dx / d * distance / 2; b.y = cy + dy / d * distance / 2; changed = true;
+            }
+          }
+          if (!changed) break;
+        }
+        const features = [];
+        markers.forEach((item, i) => {
+          const p = positions[i], a = anchors[i]; item.offset = [p.x - a.x, p.y - a.y]; item.marker.setOffset(item.offset);
+          if (Math.hypot(...item.offset) > 2) {
+            features.push({type: 'Feature', properties: {}, geometry: {type: 'LineString', coordinates: [item.s.coordinates, map.unproject([p.x, p.y]).toArray()]}});
+            features.push({type: 'Feature', properties: {}, geometry: {type: 'Point', coordinates: item.s.coordinates}});
+          }
+        });
+        map.getSource('bspm-anchors')?.setData({type: 'FeatureCollection', features});
+        illustrations.forEach(({image}) => { image.hidden = w < 600 || map.getZoom() < 16; });
+      }
+      function scheduleLayout() {
+        if (destroyed) return;
+        cancelAnimationFrame(layoutFrame); layoutFrame = requestAnimationFrame(layoutMarkers);
+      }
+      function ensureSelectedVisible() {
+        if (destroyed || !selected || !popup) return;
+        measureFooter();
+        const item = markers.find(m => m.s.id === selected), p = map.project(item.s.coordinates);
+        const r = canvas.getBoundingClientRect(), card = popup.getBoundingClientRect();
+        const q = {x: p.x + item.offset[0], y: p.y + item.offset[1]};
+        const left = Math.min(p.x, q.x) - 25, right = Math.max(p.x, q.x) + 25;
+        const top = Math.min(p.y, q.y) - 25, bottom = Math.max(p.y, q.y) + 25;
+        let dx = left < 8 ? left - 8 : right > r.width - 8 ? right - r.width + 8 : 0;
+        const cardLeft = card.left - r.left, cardRight = card.right - r.left, cardTop = card.top - r.top;
+        const overlapsCard = right - dx > cardLeft - 10 && left - dx < cardRight + 10 && bottom > cardTop - 10;
+        const safeBottom = overlapsCard ? cardTop - 12 : r.height - measureFooter().bottom;
+        let dy = bottom > safeBottom ? bottom - safeBottom : 0;
+        if (top - dy < 70) dy = top - 70;
+        if (Math.abs(dx) > .5 || Math.abs(dy) > .5) map.panBy([dx, dy], {duration: reducedMotion() ? 0 : 260});
+      }
+      function scheduleVisibility() {
+        cancelAnimationFrame(visibilityFrame);
+        visibilityFrame = requestAnimationFrame(() => { layoutMarkers(); ensureSelectedVisible(); });
+      }
+      function selectStop(id, {notify = true} = {}) {
+        if (destroyed) return false;
+        const s = stops.find(s => s.id === id); if (!s) return false;
+        const changed = selected !== id; selected = id; overview = false;
+        markers.forEach(item => item.button.setAttribute('aria-pressed', String(item.s.id === id)));
+        hideCard();
+        const card = document.createElement('div'); card.className = 'bspm-tooltip'; card.setAttribute('role', 'status');
+        const index = document.createElement('span'); index.className = 'bspm-popup-number'; index.textContent = `ОСТАНОВКА ${number(s.order)}`;
+        const title = document.createElement('strong'); title.className = 'bspm-popup-title'; title.textContent = s.title;
+        const address = document.createElement('p'); address.className = 'bspm-popup-address'; address.textContent = s.address || '';
+        card.append(index, title, address);
+        if (s.id === 'psychology') {
+          const note = document.createElement('p'); note.className = 'bspm-popup-note'; note.textContent = s.note; card.append(note);
+        }
+        const close = document.createElement('button'); close.type = 'button'; close.className = 'bspm-popup-close'; close.textContent = '×'; close.setAttribute('aria-label', 'Закрыть карточку'); close.onclick = hideCard; card.append(close);
+        root.append(card); popup = card; overlayObserver.observe(card); measureFooter(); scheduleVisibility();
+        if (notify && changed) {
+          options.onStopSelect?.(id);
+          container.dispatchEvent(new CustomEvent('bespokoistvo:stopselect', {bubbles: true, detail: {id, order: s.order, coordinates: [...s.coordinates]}}));
+        }
+        return true;
+      }
+      function onStyleLoad() {
+        if (destroyed) return;
+        map.addSource('bspm-anchors', {type: 'geojson', data: {type: 'FeatureCollection', features: []}});
+        map.addLayer({id: 'bspm-leaders', type: 'line', source: 'bspm-anchors', filter: ['==', ['geometry-type'], 'LineString'], paint: {'line-color': '#626653', 'line-width': 1, 'line-opacity': .65}});
+        map.addLayer({id: 'bspm-anchor-dots', type: 'circle', source: 'bspm-anchors', filter: ['==', ['geometry-type'], 'Point'], paint: {'circle-radius': 2.2, 'circle-color': '#39412C', 'circle-stroke-width': 1, 'circle-stroke-color': '#FFF8EE'}});
+        if (overview) fitRoute({animate: false}); else scheduleVisibility();
+        scheduleLayout();
+      }
+      const overlayObserver = new ResizeObserver(() => {
+        measureFooter();
+        if (overview) fitRoute({animate: false, keepCard: Boolean(popup)}); else scheduleVisibility();
+      });
+      overlayObserver.observe(root.querySelector('.maplibregl-ctrl-attrib')); overlayObserver.observe(routeNote);
+      const resizeObserver = new ResizeObserver(() => {
+        cancelAnimationFrame(resizeFrame);
+        resizeFrame = requestAnimationFrame(() => {
+          if (destroyed) return;
+          map.resize(); measureFooter();
+          if (overview) fitRoute({animate: false, keepCard: Boolean(popup)}); else scheduleVisibility();
+        });
+      });
+      resizeObserver.observe(container); resizeObserver.observe(canvas);
+      map.on('style.load', onStyleLoad); map.on('idle', confirmMap); map.on('move', scheduleLayout);
+      map.on('dragstart', () => { overview = false; });
+      map.on('zoomstart', e => { if (e.originalEvent) overview = false; });
+      map.on('error', e => {
+        if (loaded) return;
+        if (e.sourceId === 'openmaptiles' || /style\.json|planet\/latest|Failed to fetch|AJAXError/.test(String(e.error?.message || ''))) {
+          fail('Не удалось получить настоящую подложку OpenFreeMap. Проверьте доступ к tiles.openfreemap.org.');
+        }
+      });
+      fitButton.onclick = () => fitRoute();
+      retryButton.onclick = () => {
+        if (destroyed) return;
+        loaded = false; setState('loading', 'Загружаем карту Москвы', 'Повторно запрашиваем улицы и здания.');
+        map.setStyle(options.style || asset('style.json')); startLoadTimer();
+      };
+      startLoadTimer(); fitRoute({animate: false});
+      return Object.freeze({
+        ready, selectStop, fitRoute,
+        getStatus: () => ({basemap: status, selectedStop: selected, route: 'not-added', overview, zoom: map.getZoom(), center: map.getCenter().toArray(), destroyed}),
+        destroy() {
+          if (destroyed) return; destroyed = true;
+          clearTimeout(loadTimer); cancelAnimationFrame(layoutFrame); cancelAnimationFrame(resizeFrame); cancelAnimationFrame(visibilityFrame);
+          resizeObserver.disconnect(); overlayObserver.disconnect(); popup?.remove();
+          markers.forEach(m => m.marker.remove()); illustrations.forEach(m => m.marker.remove());
+          fitButton.onclick = null; retryButton.onclick = null; map.remove(); host.remove();
+          if (!settled) { settled = true; rejectReady(new Error('Компонент удалён до загрузки карты.')); }
+        }
+      });
+    }
+  });
+})();

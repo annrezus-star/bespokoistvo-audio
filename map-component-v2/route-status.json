@@ -1,0 +1,52 @@
+{
+  "status": "not-added",
+  "geometry": null,
+  "profile": "walking",
+  "reason": "Подтверждённая пешеходная геометрия отсутствует; запрос к маршрутизатору FOSSGIS routed-foot заблокирован сетевым прокси среды (403).",
+  "checkedDate": "2026-10-24",
+  "segments": [
+    {
+      "from": 1,
+      "to": 2,
+      "status": "unverified",
+      "coordinates": null
+    },
+    {
+      "from": 2,
+      "to": 3,
+      "status": "unverified",
+      "coordinates": null
+    },
+    {
+      "from": 3,
+      "to": 4,
+      "status": "unverified",
+      "coordinates": null
+    },
+    {
+      "from": 4,
+      "to": 5,
+      "status": "unverified",
+      "coordinates": null
+    },
+    {
+      "from": 5,
+      "to": 6,
+      "status": "unverified",
+      "coordinates": null
+    },
+    {
+      "from": 6,
+      "to": 7,
+      "status": "unverified",
+      "coordinates": null
+    },
+    {
+      "from": 7,
+      "to": 8,
+      "status": "unverified",
+      "coordinates": null
+    }
+  ],
+  "accessNote": "Свободный проход во двор Психологического института не подтверждён. Координаты объектов не являются координатами входов."
+}
