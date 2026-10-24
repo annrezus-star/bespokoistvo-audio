@@ -1,0 +1,76 @@
+{
+  "waypoints": [
+    {
+      "hint": "pUy6h6ZMuocAAAAAXQAAAAAAAADSAAAAAAAAAMuyMkEAAAAA3wTKQQAAAABZAAAAAAAAAMoAAAB9AAAAlaw9At_NUgOVrD0C381SAwAAzwAAAAAA",
+      "location": [
+        37.596309,
+        55.758303
+      ],
+      "name": "",
+      "distance": 0
+    },
+    {
+      "hint": "jCGhkKEhoZAjAAAAWAAAAAAAAABTAAAA0ZmIQPa3J0EAAAAAM5YeQSIAAABUAAAAAAAAAE8AAAB9AAAAW7o9Aj29UgNbuj0CPb1SAwAAjwUAAAAA",
+      "location": [
+        37.599835,
+        55.754045
+      ],
+      "name": "",
+      "distance": 0
+    },
+    {
+      "hint": "kyfrhWMo64VqAAAAUAAAADgAAAAAAAAA5NdNQQcSGEFU79VAAAAAAGYAAABNAAAANQAAAAAAAAB9AAAAW7w9Ag2wUgNbvD0CDbBSAwIAXwAAAAAA",
+      "location": [
+        37.600347,
+        55.750669
+      ],
+      "name": "",
+      "distance": 0
+    },
+    {
+      "hint": "AIUSiQaFEolDAAAApwAAAB0AAAAAAAAAXh0CQRben0HYfV1AAAAAAEEAAACgAAAAHAAAAAAAAAB9AAAAFsQ9AqS8UgMWxD0CpLxSAwYAfxUAAAAA",
+      "location": [
+        37.602326,
+        55.753892
+      ],
+      "name": "",
+      "distance": 0
+    },
+    {
+      "hint": "q__ahPav9JoRAQAAzAAAAAAAAAAAAAAALXYDQkJGw0EAAAAAAAAAAAYBAADEAAAAAAAAAAAAAAB9AAAACMk9AiK5UgMIyT0CIrlSAwAAPxEAAAAA",
+      "location": [
+        37.603592,
+        55.752994
+      ],
+      "name": "",
+      "distance": 0
+    },
+    {
+      "hint": "q__ahPav9JohAAAAvAEAAAAAAAAAAAAApaB-QIMvVUIAAAAAAAAAAB8AAACrAQAAAAAAAAAAAAB9AAAA0so9Agi5UgPSyj0CCLlSAwAAPxEAAAAA",
+      "location": [
+        37.60405,
+        55.752968
+      ],
+      "name": "",
+      "distance": 0
+    },
+    {
+      "hint": "hX0ZhYqHAIkwAQAA8QEAAM4BAAAAAAAAejYSQn1BbkJdmF1CAAAAACQBAADdAQAAuwEAAAAAAAB9AAAAROc9Aqa6UgNE5z0CprpSAwIA_wAAAAAA",
+      "location": [
+        37.611332,
+        55.753382
+      ],
+      "name": "",
+      "distance": 0
+    },
+    {
+      "hint": "f_dRhIj3UYTjAAAA6QAAAAAAAAAAAAAA9sTaQR0e30EAAAAAAAAAANoAAADgAAAAAAAAAAAAAAB9AAAA2Os9ApXBUgPY6z0ClcFSAwAAPw0AAAAA",
+      "location": [
+        37.612504,
+        55.755157
+      ],
+      "name": "",
+      "distance": 0
+    }
+  ]
+}

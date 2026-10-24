@@ -1,0 +1,56 @@
+{
+  "url": "https://routing.openstreetmap.de/routed-foot/route/v1/foot/37.596309,55.758303;37.599835,55.754045;37.5999818,55.7510215;37.600347,55.750669;37.5999818,55.7510215;37.602326,55.753892;37.603592,55.752994;37.60405,55.752968;37.611332,55.753382;37.612504,55.755157?overview=full&geometries=geojson&steps=true&alternatives=false&annotations=nodes&waypoints=0%3B1%3B3%3B5%3B6%3B7%3B8%3B9&radiuses=2%3B2%3B2%3B2%3B2%3B2%3B2%3B2%3B2%3B2&continue_straight=false",
+  "points": [
+    [
+      37.596309,
+      55.758303
+    ],
+    [
+      37.599835,
+      55.754045
+    ],
+    [
+      37.5999818,
+      55.7510215
+    ],
+    [
+      37.600347,
+      55.750669
+    ],
+    [
+      37.5999818,
+      55.7510215
+    ],
+    [
+      37.602326,
+      55.753892
+    ],
+    [
+      37.603592,
+      55.752994
+    ],
+    [
+      37.60405,
+      55.752968
+    ],
+    [
+      37.611332,
+      55.753382
+    ],
+    [
+      37.612504,
+      55.755157
+    ]
+  ],
+  "stopIndices": [
+    0,
+    1,
+    3,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "viaReason": "Keep the walking path west of cycleways 482088842 and 534939402, without inventing foot permission on bicycle-only paths."
+}

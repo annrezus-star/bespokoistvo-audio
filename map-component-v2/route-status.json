@@ -1,57 +1,153 @@
 {
-  "status": "blocked",
-  "geometry": null,
+  "status": "ready",
+  "geometryFile": "route.geojson",
   "profile": "walking",
-  "reason": "Подтверждённая пешеходная геометрия отсутствует; запрос к маршрутизатору FOSSGIS routed-foot заблокирован сетевым прокси среды (403).",
+  "provider": "FOSSGIS OSRM routed-foot candidate + conservative OSM pedestrian graph correction",
+  "sourceUrl": "https://routing.openstreetmap.de/routed-foot/route/v1/foot/37.596309,55.758303;37.599835,55.754045;37.5999818,55.7510215;37.600347,55.750669;37.5999818,55.7510215;37.602326,55.753892;37.603592,55.752994;37.60405,55.752968;37.611332,55.753382;37.612504,55.755157?overview=full&geometries=geojson&steps=true&alternatives=false&annotations=nodes&waypoints=0%3B1%3B3%3B5%3B6%3B7%3B8%3B9&radiuses=2%3B2%3B2%3B2%3B2%3B2%3B2%3B2%3B2%3B2&continue_straight=false",
   "checkedDate": "2026-10-24",
-  "segments": [
-    {
-      "from": 1,
-      "to": 2,
-      "status": "unverified",
-      "coordinates": null
+  "osmTimestamp": "2026-10-24T11:10:21Z",
+  "verificationScope": "Seven connected legs checked against OSM highway/foot/access/barrier tags; field access not guaranteed",
+  "fieldVerified": false,
+  "localFootProfile": {
+    "allowedHighways": [
+      "footway",
+      "pedestrian",
+      "steps",
+      "path",
+      "living_street",
+      "service",
+      "unclassified",
+      "residential",
+      "tertiary",
+      "secondary",
+      "primary",
+      "track"
+    ],
+    "cycleways": "Only if foot=yes/designated/permissive",
+    "excludedAccess": [
+      "no",
+      "private",
+      "customers",
+      "delivery",
+      "agricultural",
+      "forestry",
+      "use_sidepath",
+      "destination"
+    ],
+    "barriers": "Exclude restricted access, walls and fences unless explicitly foot-permitted",
+    "orderOptimization": false
+  },
+  "approaches": {
+    "ryabushinsky": {
+      "coordinates": [
+        37.59630875184985,
+        55.7583030311022
+      ],
+      "source": {
+        "provider": "OSM pedestrian graph with FOSSGIS walking snap",
+        "checkedDate": "2026-10-24",
+        "entranceVerified": false
+      },
+      "note": "На подходе есть ворота с разрешённым в OSM пешим доступом. Их фактический режим нужно проверить."
     },
-    {
-      "from": 2,
-      "to": 3,
-      "status": "unverified",
-      "coordinates": null
+    "gogol-andreev": {
+      "coordinates": [
+        37.5998350183959,
+        55.75404451112227
+      ],
+      "source": {
+        "provider": "OSM pedestrian graph with FOSSGIS walking snap",
+        "checkedDate": "2026-10-24",
+        "entranceVerified": false
+      },
+      "note": "К памятнику ведут ворота с тегом permissive. Доступ зависит от режима площадки; проверьте его на месте."
     },
-    {
-      "from": 3,
-      "to": 4,
-      "status": "unverified",
-      "coordinates": null
+    "gogol-tomsky": {
+      "coordinates": [
+        37.60034649429851,
+        55.750669027044886
+      ],
+      "source": {
+        "provider": "OSM pedestrian graph with FOSSGIS walking snap",
+        "checkedDate": "2026-10-24",
+        "entranceVerified": false
+      },
+      "note": "Подход по пешей сети OSM; вход не подтверждён."
     },
-    {
-      "from": 4,
-      "to": 5,
-      "status": "unverified",
-      "coordinates": null
+    "mosselprom": {
+      "coordinates": [
+        37.60232602969414,
+        55.753892004964136
+      ],
+      "source": {
+        "provider": "OSM pedestrian graph with FOSSGIS walking snap",
+        "checkedDate": "2026-10-24",
+        "entranceVerified": false
+      },
+      "note": "Подход по пешей сети OSM; вход не подтверждён."
     },
-    {
-      "from": 5,
-      "to": 6,
-      "status": "unverified",
-      "coordinates": null
+    "arseny-morozov": {
+      "coordinates": [
+        37.603591992472204,
+        55.75299395863356
+      ],
+      "source": {
+        "provider": "OSM pedestrian graph with FOSSGIS walking snap",
+        "checkedDate": "2026-10-24",
+        "entranceVerified": false
+      },
+      "note": "Подход по пешей сети OSM; вход не подтверждён."
     },
-    {
-      "from": 6,
-      "to": 7,
-      "status": "unverified",
-      "coordinates": null
+    "varvara-morozova": {
+      "coordinates": [
+        37.60404991802675,
+        55.75296754954369
+      ],
+      "source": {
+        "provider": "OSM pedestrian graph with FOSSGIS walking snap",
+        "checkedDate": "2026-10-24",
+        "entranceVerified": false,
+        "osmWayId": 177804698
+      },
+      "note": "Подход по тротуару Воздвиженки, перед частными воротами. Вход в особняк не подтверждён."
     },
-    {
-      "from": 7,
-      "to": 8,
-      "status": "unverified",
-      "coordinates": null
+    "psychology": {
+      "coordinates": [
+        37.61133195636355,
+        55.75338200690365
+      ],
+      "source": {
+        "provider": "OSM pedestrian graph with FOSSGIS walking snap",
+        "checkedDate": "2026-10-24",
+        "entranceVerified": false,
+        "osmWayId": 133638147
+      },
+      "note": "Линия ведёт к тротуару Моховой. Объект во дворе; вход и свободный проход не подтверждены."
+    },
+    "old-msu": {
+      "coordinates": [
+        37.61250387017848,
+        55.7551570444369
+      ],
+      "source": {
+        "provider": "OSM pedestrian graph with FOSSGIS walking snap",
+        "checkedDate": "2026-10-24",
+        "entranceVerified": false,
+        "osmWayId": 109446028
+      },
+      "note": "Подход по тротуару Моховой. Координата на линии — не подтверждённый вход в здание."
     }
+  },
+  "remainingFieldChecks": [
+    "Все семь участков: актуальность переходов, дорожные работы и доступность тротуаров",
+    "01–02 и 02–03: фактический режим ворот; permissive не гарантирует постоянное открытие",
+    "02–03 и 03–04: лестницы и переходы, доступность для конкретной группы",
+    "06–07 и 07–08: ориентирование с тротуара Моховой; во двор института линия не входит"
   ],
-  "accessNote": "Свободный проход во двор Психологического института не подтверждён. Координаты объектов не являются координатами входов.",
-  "geometryFile": null,
-  "provider": "FOSSGIS OSRM routed-foot / OpenStreetMap",
-  "sourceUrl": "https://routing.openstreetmap.de/routed-foot/route/v1/foot/",
-  "blocker": "Среда разрешает только сетевой preset package_managers; домен routing.openstreetmap.de отсутствует в активном allowlist, CONNECT возвращает 403 до получения ответа маршрутизатора.",
-  "requiredAction": "Применить и опубликовать сохранённый сетевой черновик среды; затем получить walking-геометрию и проверить семь участков, в особенности подход с общедоступной улицы к 07."
+  "provenanceFiles": [
+    "provenance/osrm-foot-request.json",
+    "provenance/osrm-foot-response.json",
+    "provenance/osm-foot-network.json",
+    "provenance/route-audit.json"
+  ]
 }

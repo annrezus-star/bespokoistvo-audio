@@ -1,0 +1,233 @@
+{
+  "checkedDate": "2026-10-24",
+  "osmTimestamp": "2026-10-24T11:10:21Z",
+  "excludedPrivateGate": 2606788882,
+  "excludedCyclewaysWithoutFootPermission": [
+    482088842,
+    534939402
+  ],
+  "verificationScope": "Map data review, not legal/public-access or field guarantee",
+  "legs": [
+    {
+      "order": 1,
+      "from": "ryabushinsky",
+      "to": "gogol-andreev",
+      "verification": "checked",
+      "verificationScope": "OSM connected pedestrian graph, foot/access tags and barrier nodes; not a field survey",
+      "publicAccess": true,
+      "fieldVerified": false,
+      "engine": "Dijkstra foot-only graph / OSM, following and auditing the FOSSGIS walking candidate",
+      "osmWayIds": [
+        212050040,
+        369889612,
+        155880590,
+        651802354,
+        1176575372,
+        1176575371,
+        368781121,
+        335756778,
+        368781142,
+        133636850,
+        465519517,
+        465453188,
+        465519518,
+        142900845,
+        670774359,
+        133636925,
+        109363041
+      ],
+      "knownGates": [
+        {
+          "id": 2219502312,
+          "tags": {
+            "barrier": "gate",
+            "foot": "yes"
+          }
+        },
+        {
+          "id": 1774816247,
+          "tags": {
+            "access": "permissive",
+            "barrier": "gate"
+          }
+        }
+      ],
+      "hasSteps": false,
+      "sourceVertexCount": 59,
+      "continuousWithPrevious": true
+    },
+    {
+      "order": 2,
+      "from": "gogol-andreev",
+      "to": "gogol-tomsky",
+      "verification": "checked",
+      "verificationScope": "OSM connected pedestrian graph, foot/access tags and barrier nodes; not a field survey",
+      "publicAccess": true,
+      "fieldVerified": false,
+      "engine": "Dijkstra foot-only graph / OSM, following and auditing the FOSSGIS walking candidate",
+      "osmWayIds": [
+        109363041,
+        133636925,
+        98184957,
+        67397945,
+        67397968,
+        67397988,
+        330931802,
+        330931806,
+        330931826,
+        1504299458,
+        330931825,
+        133636952,
+        98121482,
+        133636898,
+        133636908,
+        177804737,
+        427311294,
+        427311296,
+        133636857,
+        160232376
+      ],
+      "knownGates": [
+        {
+          "id": 1774816247,
+          "tags": {
+            "access": "permissive",
+            "barrier": "gate"
+          }
+        }
+      ],
+      "hasSteps": true,
+      "sourceVertexCount": 56,
+      "continuousWithPrevious": true
+    },
+    {
+      "order": 3,
+      "from": "gogol-tomsky",
+      "to": "mosselprom",
+      "verification": "checked",
+      "verificationScope": "OSM connected pedestrian graph, foot/access tags and barrier nodes; not a field survey",
+      "publicAccess": true,
+      "fieldVerified": false,
+      "engine": "Dijkstra foot-only graph / OSM, following and auditing the FOSSGIS walking candidate",
+      "osmWayIds": [
+        160232376,
+        133636857,
+        427311296,
+        427311294,
+        177804737,
+        133636908,
+        133636898,
+        98121482,
+        133636952,
+        18876101,
+        534176963,
+        439995323,
+        440000995,
+        27672871,
+        360762092,
+        360762084,
+        67397955,
+        67397971,
+        98121511,
+        1426310811,
+        67397965,
+        67397996,
+        651938351,
+        255826419,
+        177804732,
+        751226324,
+        84056572,
+        608150342,
+        533681921,
+        533681922,
+        255070714
+      ],
+      "knownGates": [],
+      "hasSteps": true,
+      "sourceVertexCount": 64,
+      "continuousWithPrevious": true
+    },
+    {
+      "order": 4,
+      "from": "mosselprom",
+      "to": "arseny-morozov",
+      "verification": "checked",
+      "verificationScope": "OSM connected pedestrian graph, foot/access tags and barrier nodes; not a field survey",
+      "publicAccess": true,
+      "fieldVerified": false,
+      "engine": "Dijkstra foot-only graph / OSM, following and auditing the FOSSGIS walking candidate",
+      "osmWayIds": [
+        255070714,
+        533681922,
+        533681921,
+        254895205,
+        177804698
+      ],
+      "knownGates": [],
+      "hasSteps": false,
+      "sourceVertexCount": 19,
+      "continuousWithPrevious": true
+    },
+    {
+      "order": 5,
+      "from": "arseny-morozov",
+      "to": "varvara-morozova",
+      "verification": "checked",
+      "verificationScope": "OSM connected pedestrian graph, foot/access tags and barrier nodes; not a field survey",
+      "publicAccess": true,
+      "fieldVerified": false,
+      "engine": "Dijkstra foot-only graph / OSM, following and auditing the FOSSGIS walking candidate",
+      "osmWayIds": [
+        177804698
+      ],
+      "knownGates": [],
+      "hasSteps": false,
+      "sourceVertexCount": 2,
+      "continuousWithPrevious": true
+    },
+    {
+      "order": 6,
+      "from": "varvara-morozova",
+      "to": "psychology",
+      "verification": "checked",
+      "verificationScope": "OSM connected pedestrian graph, foot/access tags and barrier nodes; not a field survey",
+      "publicAccess": true,
+      "fieldVerified": false,
+      "engine": "Dijkstra foot-only graph / OSM, following and auditing the FOSSGIS walking candidate",
+      "osmWayIds": [
+        177804698,
+        751226521,
+        1314828704,
+        1314828703,
+        524514653,
+        133638147
+      ],
+      "knownGates": [],
+      "hasSteps": false,
+      "sourceVertexCount": 26,
+      "continuousWithPrevious": true
+    },
+    {
+      "order": 7,
+      "from": "psychology",
+      "to": "old-msu",
+      "verification": "checked",
+      "verificationScope": "OSM connected pedestrian graph, foot/access tags and barrier nodes; not a field survey",
+      "publicAccess": true,
+      "fieldVerified": false,
+      "engine": "Dijkstra foot-only graph / OSM, following and auditing the FOSSGIS walking candidate",
+      "osmWayIds": [
+        133638147,
+        712633359,
+        133637899,
+        712633358,
+        133637894,
+        109446028
+      ],
+      "knownGates": [],
+      "hasSteps": false,
+      "sourceVertexCount": 15,
+      "continuousWithPrevious": true
+    }
+  ]
+}

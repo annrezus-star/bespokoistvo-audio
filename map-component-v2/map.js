@@ -45,13 +45,17 @@
       ready.catch(() => {});
 
       const initialSize = container.getBoundingClientRect();
+      const defaultStyle = asset(options.liveBasemap ? 'style-live.json' : 'style.json');
+      let styleController = new AbortController();
       const sidePadding = width => width < 600 ? 34 : 44;
       const map = new maplibregl.Map({
-        container: canvas, style: options.style || asset('style.json'),
+        container: canvas,
+        transformRequest: url => ({url: new URL(url, base).href}),
+        maxBounds: options.liveBasemap ? undefined : [[37.55, 55.72], [37.65, 55.80]],
         bounds: bounds.toArray(),
         fitBoundsOptions: {padding: {top: 82, right: sidePadding(initialSize.width), bottom: 82, left: sidePadding(initialSize.width)}, maxZoom: 20},
         attributionControl: false, renderWorldCopies: false, dragRotate: false, touchPitch: false,
-        cooperativeGestures: options.cooperativeGestures ?? false, scrollZoom: options.scrollZoom ?? true, minZoom: 2, maxZoom: 20
+        cooperativeGestures: options.cooperativeGestures ?? false, scrollZoom: options.scrollZoom ?? true, minZoom: options.liveBasemap ? 2 : 12, maxZoom: 20
       });
       map.touchZoomRotate.disableRotation();
       map.addControl(new maplibregl.NavigationControl({showCompass: false}), 'top-right');
@@ -172,9 +176,9 @@
             features.push({type: 'Feature', properties: {}, geometry: {type: 'Point', coordinates: item.s.coordinates}});
           }
         });
-        map.getSource('bspm-anchors')?.setData({type: 'FeatureCollection', features});
+        if (map.getStyle()?.layers) map.getSource('bspm-anchors')?.setData({type: 'FeatureCollection', features});
         const labels = w >= 760 ? markers.map((m, i) => ({type: 'Feature', properties: {title: m.s.shortTitle || m.s.title, order: m.s.order}, geometry: {type: 'Point', coordinates: map.unproject([positions[i].x, positions[i].y]).toArray()}})) : [];
-        map.getSource('bspm-stop-labels')?.setData({type: 'FeatureCollection', features: labels});
+        if (map.getStyle()?.layers) map.getSource('bspm-stop-labels')?.setData({type: 'FeatureCollection', features: labels});
         illustrations.forEach(({image}) => { image.hidden = w < 600 || map.getZoom() < 16; });
       }
       function scheduleLayout() {
@@ -187,8 +191,9 @@
         const item = markers.find(m => m.s.id === selected), p = map.project(item.s.coordinates);
         const r = canvas.getBoundingClientRect(), card = popup.getBoundingClientRect();
         const q = {x: p.x + item.offset[0], y: p.y + item.offset[1]};
-        const left = Math.min(p.x, q.x) - 25, right = Math.max(p.x, q.x) + 25;
-        const top = Math.min(p.y, q.y) - 25, bottom = Math.max(p.y, q.y) + 25;
+        const approach = map.project(item.s.approachCoordinates || item.s.coordinates);
+        const left = Math.min(p.x, q.x, approach.x) - 25, right = Math.max(p.x, q.x, approach.x) + 25;
+        const top = Math.min(p.y, q.y, approach.y) - 25, bottom = Math.max(p.y, q.y, approach.y) + 25;
         let dx = left < 8 ? left - 8 : right > r.width - 8 ? right - r.width + 8 : 0;
         const cardLeft = card.left - r.left, cardRight = card.right - r.left, cardTop = card.top - r.top;
         const overlapsCard = right - dx > cardLeft - 10 && left - dx < cardRight + 10 && bottom > cardTop - 10;
@@ -212,8 +217,8 @@
         const title = document.createElement('strong'); title.className = 'bspm-popup-title'; title.textContent = s.title;
         const address = document.createElement('p'); address.className = 'bspm-popup-address'; address.textContent = s.address || '';
         card.append(index, title, address);
-        if (s.id === 'psychology') {
-          const note = document.createElement('p'); note.className = 'bspm-popup-note'; note.textContent = s.note; card.append(note);
+        if (s.approachNote || s.id === 'psychology') {
+          const note = document.createElement('p'); note.className = 'bspm-popup-note'; note.textContent = s.approachNote || s.note; card.append(note);
         }
         const close = document.createElement('button'); close.type = 'button'; close.className = 'bspm-popup-close'; close.textContent = '×'; close.setAttribute('aria-label', 'Закрыть карточку'); close.onclick = hideCard; card.append(close);
         root.append(card); popup = card; overlayObserver.observe(card); measureFooter(); scheduleVisibility();
@@ -223,11 +228,39 @@
         }
         return true;
       }
+      async function loadConfiguredStyle() {
+        styleController.abort(); styleController = new AbortController();
+        const controller = styleController;
+        try {
+          const configured = options.style || defaultStyle;
+          const styleBase = typeof configured === 'string' ? new URL(configured, base) : base;
+          let specification;
+          if (typeof configured === 'string') {
+            const response = await fetch(styleBase, {signal: controller.signal});
+            if (!response.ok) throw new Error('Не получен JSON стиля.');
+            specification = await response.json();
+          } else specification = JSON.parse(JSON.stringify(configured));
+          const absolute = url => new URL(url, styleBase).href.replace(/%7B/gi, '{').replace(/%7D/gi, '}');
+          if (specification.glyphs) specification.glyphs = absolute(specification.glyphs);
+          if (typeof specification.sprite === 'string') specification.sprite = absolute(specification.sprite);
+          else if (Array.isArray(specification.sprite)) specification.sprite = specification.sprite.map(item => ({...item, url: absolute(item.url)}));
+          Object.values(specification.sources || {}).forEach(source => {
+            if (source.url) source.url = absolute(source.url);
+            if (source.tiles) source.tiles = source.tiles.map(absolute);
+            if (typeof source.data === 'string') source.data = absolute(source.data);
+          });
+          if (!destroyed && !controller.signal.aborted) map.setStyle(specification);
+        } catch (error) {
+          if (!destroyed && error.name !== 'AbortError') fail('Не удалось загрузить стиль карты. Проверьте файлы компонента.');
+        }
+      }
       function installRoute() {
-        if (!routeGeometry || !map.getSource('bspm-anchors') || map.getSource('bspm-route')) return;
+        if (!routeGeometry || !map.getStyle()?.layers || !map.getSource('bspm-anchors') || map.getSource('bspm-route')) return;
         map.addSource('bspm-route', {type: 'geojson', data: routeGeometry});
         map.addLayer({id: 'bspm-route-outline', type: 'line', source: 'bspm-route', layout: {'line-join': 'round', 'line-cap': 'round'}, paint: {'line-color': '#39412C', 'line-width': 6, 'line-opacity': .7}}, 'bspm-leaders');
         map.addLayer({id: 'bspm-route-line', type: 'line', source: 'bspm-route', layout: {'line-join': 'round', 'line-cap': 'round'}, paint: {'line-color': '#E8B4C7', 'line-width': 4.5}}, 'bspm-leaders');
+        map.addSource('bspm-route-approaches', {type: 'geojson', data: {type: 'FeatureCollection', features: stops.filter(s => s.approachCoordinates).map(s => ({type: 'Feature', properties: {id: s.id}, geometry: {type: 'Point', coordinates: s.approachCoordinates}}))}});
+        map.addLayer({id: 'bspm-route-approach-dots', type: 'circle', source: 'bspm-route-approaches', paint: {'circle-radius': 3.5, 'circle-color': '#FFF8EE', 'circle-stroke-width': 1.2, 'circle-stroke-color': '#39412C'}}, 'bspm-leaders');
       }
       function installStopLabels() {
         // Прозрачная область 48×48 резервирует место для DOM-номера в механизме коллизий SDK.
@@ -278,9 +311,9 @@
       retryButton.onclick = () => {
         if (destroyed) return;
         loaded = false; setState('loading', 'Загружаем карту Москвы', 'Повторно запрашиваем улицы и здания.');
-        map.setStyle(options.style || asset('style.json')); startLoadTimer();
+        loadConfiguredStyle(); startLoadTimer();
       };
-      startLoadTimer(); fitRoute({animate: false});
+      loadConfiguredStyle(); startLoadTimer(); fitRoute({animate: false});
       const routePromise = window.BespokoistvoRoute
         ? window.BespokoistvoRoute.load(base, stops, routeAbort.signal)
         : Promise.resolve({status: 'blocked', geometry: null});
@@ -301,7 +334,7 @@
         getStatus: () => ({basemap: status, selectedStop: selected, route: routeState, overview, zoom: map.getZoom(), center: map.getCenter().toArray(), destroyed}),
         destroy() {
           if (destroyed) return; destroyed = true;
-          routeAbort.abort(); if (instances.get(container) === api) instances.delete(container);
+          styleController.abort(); routeAbort.abort(); if (instances.get(container) === api) instances.delete(container);
           clearTimeout(loadTimer); cancelAnimationFrame(layoutFrame); cancelAnimationFrame(resizeFrame); cancelAnimationFrame(visibilityFrame);
           resizeObserver.disconnect(); overlayObserver.disconnect(); popup?.remove();
           markers.forEach(m => m.marker.remove()); illustrations.forEach(m => m.marker.remove());

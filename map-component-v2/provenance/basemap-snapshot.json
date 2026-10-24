@@ -1,0 +1,472 @@
+{
+  "provider": "OpenFreeMap / OpenStreetMap",
+  "planetTileTemplate": "https://tiles.openfreemap.org/planet/20261018_080001_pt/{z}/{x}/{y}.pbf",
+  "downloadedDate": "2026-10-24",
+  "bounds": [
+    37.55,
+    55.72,
+    37.65,
+    55.8
+  ],
+  "minzoom": 12,
+  "maxzoom": 14,
+  "tlsVerification": "Python default TLS validation with existing system trust; no certificate validation disabled; Chromium trust store unchanged",
+  "files": [
+    {
+      "file": "assets/tiles/12/2475/1279.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/12/2475/1279.pbf",
+      "bytes": 127222,
+      "sha256": "647cefb8533d586951004e7dce0ce5c7ebd4cfbb1992200ad4830d9b840daef9"
+    },
+    {
+      "file": "assets/tiles/12/2475/1280.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/12/2475/1280.pbf",
+      "bytes": 164694,
+      "sha256": "24e49652f13ae12d1eb8f01c4aa7787036ce0f904ce983ab050c45577ae0cfcf"
+    },
+    {
+      "file": "assets/tiles/12/2475/1281.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/12/2475/1281.pbf",
+      "bytes": 110108,
+      "sha256": "ff55ea3d8edfc23997afcfb51090abe8b6dcfa3ff1c031d24bfa4e9210ceffad"
+    },
+    {
+      "file": "assets/tiles/12/2476/1279.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/12/2476/1279.pbf",
+      "bytes": 126253,
+      "sha256": "ddcae9ea276c515c7709473b8093c4dd92e8c27177fee82e4a244e84524736e0"
+    },
+    {
+      "file": "assets/tiles/12/2476/1280.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/12/2476/1280.pbf",
+      "bytes": 184743,
+      "sha256": "ea3556dcb673a25a528216bced09182fdec9ccb5bdd23740db247c2dbf16bfb7"
+    },
+    {
+      "file": "assets/tiles/12/2476/1281.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/12/2476/1281.pbf",
+      "bytes": 98558,
+      "sha256": "5f858e4f4cc3406906574f17b6ff631277987534bba85c76e1881561bf828375"
+    },
+    {
+      "file": "assets/tiles/13/4950/2559.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/13/4950/2559.pbf",
+      "bytes": 75074,
+      "sha256": "f622a035977ce8aa380592beaece4604f1d4737a43f4f44995f547f92d3964f6"
+    },
+    {
+      "file": "assets/tiles/13/4950/2560.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/13/4950/2560.pbf",
+      "bytes": 79737,
+      "sha256": "a16e7644f70caa8c4019976b1625865d71fc3ce8cb16373b600a0551d57cbc5f"
+    },
+    {
+      "file": "assets/tiles/13/4950/2561.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/13/4950/2561.pbf",
+      "bytes": 76390,
+      "sha256": "d4aca580b03de3a4963a27a4bd3b54833a1c78ace98f886165e47f61643fbdac"
+    },
+    {
+      "file": "assets/tiles/13/4950/2562.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/13/4950/2562.pbf",
+      "bytes": 58343,
+      "sha256": "592cee27d9b09a54c0b6dbd8cbd986c47535c8b302e0c049765727c60fcee92f"
+    },
+    {
+      "file": "assets/tiles/13/4951/2559.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/13/4951/2559.pbf",
+      "bytes": 108714,
+      "sha256": "766b81bc311732feff0c1f700a5b5d9ec0d157d56cf91b9a2c88b90f7bfe02e2"
+    },
+    {
+      "file": "assets/tiles/13/4951/2560.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/13/4951/2560.pbf",
+      "bytes": 144034,
+      "sha256": "18333a730f3b4b99cd120406776fc290ed321ba9a69b4dc0f9994cb0144d0892"
+    },
+    {
+      "file": "assets/tiles/13/4951/2561.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/13/4951/2561.pbf",
+      "bytes": 120280,
+      "sha256": "f34ac3febc6fa25f7309e4ecd8481353293ac51364c3be87be67d7aa26b1cb8c"
+    },
+    {
+      "file": "assets/tiles/13/4951/2562.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/13/4951/2562.pbf",
+      "bytes": 79195,
+      "sha256": "44df95f8e2d29b43eddb82caafc8389027c239f42b2b27f37674bde497bd748a"
+    },
+    {
+      "file": "assets/tiles/13/4952/2559.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/13/4952/2559.pbf",
+      "bytes": 87484,
+      "sha256": "f064720483ce0cb6add64a7d8974fd53602b87253b972198240bfcc3fd388e31"
+    },
+    {
+      "file": "assets/tiles/13/4952/2560.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/13/4952/2560.pbf",
+      "bytes": 161693,
+      "sha256": "82971341d1e5270e315b167454121ee4770377ed6ab03cebdf5dc1552525ec8b"
+    },
+    {
+      "file": "assets/tiles/13/4952/2561.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/13/4952/2561.pbf",
+      "bytes": 131761,
+      "sha256": "b274d7a3bc9fb79af73d8d4baf5d7dca5f5890e0f29ab50c15c7f20e27c29333"
+    },
+    {
+      "file": "assets/tiles/13/4952/2562.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/13/4952/2562.pbf",
+      "bytes": 82618,
+      "sha256": "8a9b48006d0c2eaf0129244ee2590a32fd9074050f744d2b63e7845e4c1077d4"
+    },
+    {
+      "file": "assets/tiles/14/9900/5118.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9900/5118.pbf",
+      "bytes": 161051,
+      "sha256": "1d60f71475c12919a0393a19135fa4e99e7f0794439fb0c87cd7b78deebde24b"
+    },
+    {
+      "file": "assets/tiles/14/9900/5119.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9900/5119.pbf",
+      "bytes": 130891,
+      "sha256": "1600bd8456d080d13f8bc7633967cb92414d9f12dca317e87e5f030567a35655"
+    },
+    {
+      "file": "assets/tiles/14/9900/5120.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9900/5120.pbf",
+      "bytes": 89836,
+      "sha256": "b0bb16f311b98a389048aab1d2aea656d7b90710ab750b612650b7a7fef11f23"
+    },
+    {
+      "file": "assets/tiles/14/9900/5121.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9900/5121.pbf",
+      "bytes": 113068,
+      "sha256": "dd7c916e8276ca5a5fe7a01595a0bb28b7718ecbe97f65171fd2fef5cc6963e3"
+    },
+    {
+      "file": "assets/tiles/14/9900/5122.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9900/5122.pbf",
+      "bytes": 163834,
+      "sha256": "8f827d22e78a6e6b4ef1770f43d2708b82f3e5153b8a1c3c2a8ee5db46921d93"
+    },
+    {
+      "file": "assets/tiles/14/9900/5123.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9900/5123.pbf",
+      "bytes": 111892,
+      "sha256": "92d17ee776aa549961c23894ff94b2de948927e25fcf286d546d4d03af19164b"
+    },
+    {
+      "file": "assets/tiles/14/9900/5124.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9900/5124.pbf",
+      "bytes": 71510,
+      "sha256": "2fc6f4a035e4f4854ebad226edb20536566b573ddeb99762f812af3b24624f01"
+    },
+    {
+      "file": "assets/tiles/14/9901/5118.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9901/5118.pbf",
+      "bytes": 169789,
+      "sha256": "ee1e71b091002ad78f6c90613567db8ef7c0421ab3bee6b40d00368173c94ae2"
+    },
+    {
+      "file": "assets/tiles/14/9901/5119.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9901/5119.pbf",
+      "bytes": 135656,
+      "sha256": "84ac9838673deb8a03c0a2755c315b06507eb99446587b3a4345bf830006a91b"
+    },
+    {
+      "file": "assets/tiles/14/9901/5120.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9901/5120.pbf",
+      "bytes": 149761,
+      "sha256": "87ed2bc1fc25204510218ade173274a3cdd0c71a5d240900792353f9b2e8579f"
+    },
+    {
+      "file": "assets/tiles/14/9901/5121.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9901/5121.pbf",
+      "bytes": 178051,
+      "sha256": "7fcd8c5b43d7b2345c20b7c23e6aaff84ab671ead020724f1815ae9bac808405"
+    },
+    {
+      "file": "assets/tiles/14/9901/5122.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9901/5122.pbf",
+      "bytes": 144841,
+      "sha256": "9b8bb6fd503bfd30e13f6f61e3174897690c064f728ab3fda394fb0ec49f9942"
+    },
+    {
+      "file": "assets/tiles/14/9901/5123.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9901/5123.pbf",
+      "bytes": 147617,
+      "sha256": "ed43d4c5f08a5e3fcd2d7f8e78e2e6897a8200f0c70517ad9ff1056aea60ba28"
+    },
+    {
+      "file": "assets/tiles/14/9901/5124.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9901/5124.pbf",
+      "bytes": 149208,
+      "sha256": "e6f3f5ac07cd07e191791b0f86dd209d25ef5df2261b5d77571ba6ced2770896"
+    },
+    {
+      "file": "assets/tiles/14/9902/5118.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9902/5118.pbf",
+      "bytes": 191683,
+      "sha256": "2ca49d21cb8efb33743ebe89bdfb9f878f086bcca3d0e76e482b4881aa209a1a"
+    },
+    {
+      "file": "assets/tiles/14/9902/5119.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9902/5119.pbf",
+      "bytes": 253414,
+      "sha256": "de0b8d3c945cdcd17a557255ed3d6c9998d6e7fce13f3d16e8d2500f40ab3138"
+    },
+    {
+      "file": "assets/tiles/14/9902/5120.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9902/5120.pbf",
+      "bytes": 322633,
+      "sha256": "ab34e90675a13b099f13fbdd312f91d61aa74f0ad84ec72b221d7be6b6ff1e26"
+    },
+    {
+      "file": "assets/tiles/14/9902/5121.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9902/5121.pbf",
+      "bytes": 337727,
+      "sha256": "8958b0a1ff59e48b743df8aff4966e4124492bea162ea5fa032f7ef4b392208c"
+    },
+    {
+      "file": "assets/tiles/14/9902/5122.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9902/5122.pbf",
+      "bytes": 312564,
+      "sha256": "36a1a4cdf8b2ee966f49d517bbde7817f192a242bd8f690615df713ee04e0c1c"
+    },
+    {
+      "file": "assets/tiles/14/9902/5123.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9902/5123.pbf",
+      "bytes": 248529,
+      "sha256": "0c08d4d4fbf6f96af7e273e15b789d84231597b86b49a66c02a934afe530f77c"
+    },
+    {
+      "file": "assets/tiles/14/9902/5124.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9902/5124.pbf",
+      "bytes": 132581,
+      "sha256": "a28d2c4d9ce3f6616463bda5916bb614391ca493e07ee8d1aec30ef5d94948d9"
+    },
+    {
+      "file": "assets/tiles/14/9903/5118.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9903/5118.pbf",
+      "bytes": 196935,
+      "sha256": "2d66362550e07f40bdb4ea0278429dfe88141e3a6e66e40d2bde9df44b5db2bf"
+    },
+    {
+      "file": "assets/tiles/14/9903/5119.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9903/5119.pbf",
+      "bytes": 266840,
+      "sha256": "ae649029be4733b5515e5bc950e1382d09a463be2784362fb4913970aa4128e9"
+    },
+    {
+      "file": "assets/tiles/14/9903/5120.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9903/5120.pbf",
+      "bytes": 438228,
+      "sha256": "237f1ec2a24b04a8f9deed23c7490fb16205e0fc243e7f2762ec8842fe50b619"
+    },
+    {
+      "file": "assets/tiles/14/9903/5121.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9903/5121.pbf",
+      "bytes": 536762,
+      "sha256": "e95af3954f3fcfa86b0482b977ef43e158a09b83d18c96d49108d0849181bb5f"
+    },
+    {
+      "file": "assets/tiles/14/9903/5122.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9903/5122.pbf",
+      "bytes": 425143,
+      "sha256": "99220f7eb701f8deced723e4033a9a813f02bd74900b9a83f97cca530f50572c"
+    },
+    {
+      "file": "assets/tiles/14/9903/5123.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9903/5123.pbf",
+      "bytes": 275862,
+      "sha256": "086ef7117ad8f9ab80f3843a2d56af19403203c490357fb0b313696cf0dc7b0a"
+    },
+    {
+      "file": "assets/tiles/14/9903/5124.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9903/5124.pbf",
+      "bytes": 195556,
+      "sha256": "6db366437eb93c7b1afc90d67720c05f927c21b129e9d4bd5f969036b6236636"
+    },
+    {
+      "file": "assets/tiles/14/9904/5118.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9904/5118.pbf",
+      "bytes": 155775,
+      "sha256": "28156e4312aea5dd57d6c686ce0e703812806da0831975694118c1cb1b9478bb"
+    },
+    {
+      "file": "assets/tiles/14/9904/5119.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9904/5119.pbf",
+      "bytes": 242419,
+      "sha256": "67a513a72f7a6b2efb5cc06b0fc26534e9624b85868b00bd1bbfb4787e381b12"
+    },
+    {
+      "file": "assets/tiles/14/9904/5120.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9904/5120.pbf",
+      "bytes": 407734,
+      "sha256": "af1adc50267440c8d2932441cb36fc84280e048185947c2d9999946565f0aabf"
+    },
+    {
+      "file": "assets/tiles/14/9904/5121.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9904/5121.pbf",
+      "bytes": 525242,
+      "sha256": "4ffe6c392052ae2c57993e54073da9214a0eecc69f2ae126af80235cb2a5a4ca"
+    },
+    {
+      "file": "assets/tiles/14/9904/5122.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9904/5122.pbf",
+      "bytes": 355350,
+      "sha256": "3755293cc4a9c428b2b4abb0a44f3ba34fefa9cfc51f6b05107dfa13276d9adc"
+    },
+    {
+      "file": "assets/tiles/14/9904/5123.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9904/5123.pbf",
+      "bytes": 336752,
+      "sha256": "7d147352260bf22f4537c161800aff4246f17255c7b56abb330ce659f3c4a45a"
+    },
+    {
+      "file": "assets/tiles/14/9904/5124.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9904/5124.pbf",
+      "bytes": 190300,
+      "sha256": "1ad270b638573fe965a1a848a068956f6bda60dfe9ec783446191951838de2cf"
+    },
+    {
+      "file": "assets/tiles/14/9905/5118.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9905/5118.pbf",
+      "bytes": 96257,
+      "sha256": "0b27fdd7795f86fad4c51577a02c2d13b559daf5f5547e7b6a92f37fee4750e1"
+    },
+    {
+      "file": "assets/tiles/14/9905/5119.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9905/5119.pbf",
+      "bytes": 191482,
+      "sha256": "8167281f8c6b87c8d6c82447c11b1080770f56e9db3dbb35ba72a9897698a652"
+    },
+    {
+      "file": "assets/tiles/14/9905/5120.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9905/5120.pbf",
+      "bytes": 343480,
+      "sha256": "f9a6092c5b867d7ebf43981627bc684ca3818126aabd54192f4cc8aa4ac21303"
+    },
+    {
+      "file": "assets/tiles/14/9905/5121.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9905/5121.pbf",
+      "bytes": 387763,
+      "sha256": "7826224d4d53152cb4ed81e75c7f0341f09a2fca5bfb8bc45157903f2089dfde"
+    },
+    {
+      "file": "assets/tiles/14/9905/5122.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9905/5122.pbf",
+      "bytes": 303441,
+      "sha256": "e12a66c236649f178097b5ac444c7c7a348127ff2f5de8b9a3ce309b9f05f209"
+    },
+    {
+      "file": "assets/tiles/14/9905/5123.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9905/5123.pbf",
+      "bytes": 242163,
+      "sha256": "00e297057ae518c47dd1b832c04c31aa349dbb5de8ccf1f84bc383024bacb5b2"
+    },
+    {
+      "file": "assets/tiles/14/9905/5124.pbf",
+      "source": "https://tiles.openfreemap.org/planet/20261018_080001_pt/14/9905/5124.pbf",
+      "bytes": 115718,
+      "sha256": "50dfa9756f9ca5b0c9131070d79fc4270afd2da40742ede41e2428708eee6165"
+    },
+    {
+      "file": "assets/fonts/Noto Sans Regular/0-255.pbf",
+      "source": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Regular/0-255.pbf",
+      "bytes": 76580,
+      "sha256": "ef1f38a3f1978591e846e9eaddf8a54f7047f546fc6aaed7872cc53151a5de78"
+    },
+    {
+      "file": "assets/fonts/Noto Sans Regular/256-511.pbf",
+      "source": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Regular/256-511.pbf",
+      "bytes": 127219,
+      "sha256": "992557f9e2574cfb9a75e16c7b52832578849772b7c9a6e480d6213fb008fe5d"
+    },
+    {
+      "file": "assets/fonts/Noto Sans Regular/1024-1279.pbf",
+      "source": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Regular/1024-1279.pbf",
+      "bytes": 125222,
+      "sha256": "834adb7f3ea9944ea530214841ee098e5482e85180f14df85036939261e0ffbb"
+    },
+    {
+      "file": "assets/fonts/Noto Sans Regular/8192-8447.pbf",
+      "source": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Regular/8192-8447.pbf",
+      "bytes": 34070,
+      "sha256": "f061e5b4e42e5925228534d8822b423a029569263db09f5ce44573600d45295f"
+    },
+    {
+      "file": "assets/fonts/Noto Sans Italic/0-255.pbf",
+      "source": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Italic/0-255.pbf",
+      "bytes": 79907,
+      "sha256": "ae9c8894b4d2b6297da76a2e875685046f1f037f1a571ae006160a5540406086"
+    },
+    {
+      "file": "assets/fonts/Noto Sans Italic/256-511.pbf",
+      "source": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Italic/256-511.pbf",
+      "bytes": 132406,
+      "sha256": "82be737a8568cc3ef2beaa3f137d8698740ffef1b880076f21c2796c9e0c8c00"
+    },
+    {
+      "file": "assets/fonts/Noto Sans Italic/1024-1279.pbf",
+      "source": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Italic/1024-1279.pbf",
+      "bytes": 127434,
+      "sha256": "de4d66d14fc94ea09e2c4f7f61a8b63a88beb0ed9a493136aa1c7e770a85bd6b"
+    },
+    {
+      "file": "assets/fonts/Noto Sans Italic/8192-8447.pbf",
+      "source": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Italic/8192-8447.pbf",
+      "bytes": 34787,
+      "sha256": "da51f9be11f7bddc1c5ea052c1305eb9440790ad7cb79bf27e57f7a04c952427"
+    },
+    {
+      "file": "assets/fonts/Noto Sans Bold/0-255.pbf",
+      "source": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Bold/0-255.pbf",
+      "bytes": 81170,
+      "sha256": "f60ce4cb899455c2203bd8293b550394ade53ffce8032bf9cc7f59255e49259c"
+    },
+    {
+      "file": "assets/fonts/Noto Sans Bold/256-511.pbf",
+      "source": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Bold/256-511.pbf",
+      "bytes": 134545,
+      "sha256": "77c830f114b84a58f8829ca1eac4627a6a688bbce4bdb6a04de00f98fa74bb52"
+    },
+    {
+      "file": "assets/fonts/Noto Sans Bold/1024-1279.pbf",
+      "source": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Bold/1024-1279.pbf",
+      "bytes": 135287,
+      "sha256": "f0ab5cecbf1b1d04e8d38c7d64451a20b5707ab1fc8aa8dbbc1b660905cd4142"
+    },
+    {
+      "file": "assets/fonts/Noto Sans Bold/8192-8447.pbf",
+      "source": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Bold/8192-8447.pbf",
+      "bytes": 35678,
+      "sha256": "f31c3c9dcacbd7f9760462c0af5017d9c9f2a9543ab4938476f7a13ffabf0acf"
+    },
+    {
+      "file": "assets/sprites/ofm.json",
+      "source": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.json",
+      "bytes": 27737,
+      "sha256": "73e75e58d8c7bb62cc25d9d150660500552f4d04f6eac5efa4e236076773c356"
+    },
+    {
+      "file": "assets/sprites/ofm.png",
+      "source": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.png",
+      "bytes": 49454,
+      "sha256": "8996a519d218dc5f98015267709dae272a77bb74ef0ecc5a0992dcf276c1be4c"
+    },
+    {
+      "file": "assets/sprites/ofm@2x.json",
+      "source": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm@2x.json",
+      "bytes": 27822,
+      "sha256": "82a4aaeed2c5ce6e98553915754dbe394ee66fd9a2aacc4318d25cdd74e8730b"
+    },
+    {
+      "file": "assets/sprites/ofm@2x.png",
+      "source": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm@2x.png",
+      "bytes": 118872,
+      "sha256": "3793faf7dc47960636e4b6b1039978fa6925e6c90a7cb49ef23b37e153635c9b"
+    }
+  ]
+}
