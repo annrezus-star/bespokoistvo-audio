@@ -30,6 +30,11 @@
       root.style.cssText = 'position:relative;width:100%;height:100%;overflow:hidden';
       root.setAttribute('aria-label', 'Карта остановок прогулки');
       root.innerHTML = '<div class="bspm-canvas" style="position:absolute;inset:0"></div><div class="bspm-tools"><button class="bspm-fit" type="button" aria-label="Показать весь маршрут"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4V9M15 4H20V9M4 15V20H9M20 15V20H15"/></svg>Весь маршрут</button><button class="bspm-locate" type="button" aria-label="Показать моё местоположение" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><path d="M12 2V6M12 18V22M2 12H6M18 12H22"/></svg>Где я</button></div><div class="bspm-location-status" hidden><span role="status" aria-live="polite" aria-atomic="true"></span><button type="button" aria-label="Выключить геолокацию">×</button></div><div class="bspm-route-note">Пешая линия пока не добавлена</div><div class="bspm-state" role="status"><strong>Загружаем карту Москвы</strong><p>Улицы и здания — OpenFreeMap / OpenStreetMap.</p><button type="button" hidden>Повторить</button></div>';
+      const journey = document.createElement('section');
+      journey.className = 'bspm-journey'; journey.hidden = true;
+      journey.setAttribute('aria-label', 'Следующая остановка прогулки');
+      journey.innerHTML = '<button class="bspm-journey-prev" type="button" aria-label="Предыдущая остановка">←</button><div class="bspm-journey-copy"><span class="bspm-journey-label" role="status"></span><button class="bspm-journey-target" type="button"></button><span class="bspm-journey-metrics"></span><span class="bspm-journey-note"></span></div><button class="bspm-journey-next" type="button" aria-label="Следующая остановка">→</button>';
+      root.append(journey);
       shadow.append(root); container.append(host);
       const canvas = root.querySelector('.bspm-canvas');
       const stateBox = root.querySelector('.bspm-state');
@@ -40,6 +45,10 @@
       const locationStatus = root.querySelector('.bspm-location-status');
       const locationMessage = locationStatus.querySelector('span');
       const locationStop = locationStatus.querySelector('button');
+      const journeyPrev = journey.querySelector('.bspm-journey-prev'), journeyNext = journey.querySelector('.bspm-journey-next');
+      const journeyLabel = journey.querySelector('.bspm-journey-label'), journeyTarget = journey.querySelector('.bspm-journey-target');
+      const journeyMetrics = journey.querySelector('.bspm-journey-metrics'), journeyNote = journey.querySelector('.bspm-journey-note');
+      let navigation = null, nextStopIndex = 0;
       let destroyed = false, selected = null, popup = null, loaded = false, overview = true;
       let locationWatch = null, locationSession = 0, locationTimer = 0, locationPosition = null;
       let locationState = 'idle', locationFollow = false;
@@ -98,16 +107,85 @@
         const attribution = root.querySelector('.maplibregl-ctrl-attrib');
         const height = Math.ceil(attribution?.getBoundingClientRect().height || 32);
         root.style.setProperty('--bspm-attribution-height', `${height}px`);
-        const noteHeight = Math.ceil(routeNote.getBoundingClientRect().height || 22);
+        const noteHeight = routeNote.hidden ? 0 : Math.ceil(routeNote.getBoundingClientRect().height || 22);
         const bottom = height + noteHeight + 24;
         root.style.setProperty('--bspm-card-bottom', `${bottom}px`);
         const top = locationStatus.hidden ? 70 : Math.max(70, Math.ceil(locationStatus.getBoundingClientRect().bottom - root.getBoundingClientRect().top) + 12);
         root.style.setProperty('--bspm-top-space', `${top}px`);
-        return {height, bottom, top};
+        const journeyHeight = journey.hidden ? 0 : Math.ceil(journey.getBoundingClientRect().height) + 20;
+        return {height, bottom: Math.max(bottom, height + journeyHeight), top};
       }
       function hideCard() {
         if (!popup) return;
         overlayObserver.unobserve(popup); popup.remove(); popup = null;
+        renderJourney();
+      }
+      function navigationStatus() { return navigation?.measure(nextStopIndex, locationPosition) || null; }
+      function renderJourney() {
+        if (destroyed) return;
+        const progress = navigationStatus();
+        journey.hidden = !progress || Boolean(popup);
+        routeNote.hidden = Boolean(navigation);
+        markers.forEach(({s, button}) => button.toggleAttribute('data-next', s.id === progress?.targetStopId));
+        if (!progress) return;
+        const s = stops[nextStopIndex];
+        journeyLabel.textContent = progress.completed ? `${stops.length} из ${stops.length} остановок` : `${nextStopIndex === 0 ? 'Начало' : 'Следующая остановка'} · ${number(s.order)} из ${number(stops.length)}`;
+        journeyTarget.textContent = s ? s.shortTitle || s.title : 'Прогулка завершена';
+        journeyTarget.disabled = progress.completed;
+        journeyTarget.setAttribute('aria-label', s ? `Открыть карточку: ${s.title}` : 'Прогулка завершена');
+        journeyPrev.disabled = nextStopIndex === 0;
+        journeyNext.textContent = progress.completed ? '↻' : nextStopIndex === stops.length - 1 ? '✓' : '→';
+        journeyNext.setAttribute('aria-label', progress.completed ? 'Начать прогулку сначала' : nextStopIndex === stops.length - 1 ? 'Завершить прогулку' : `К остановке ${number(stops[nextStopIndex + 1].order)}: ${stops[nextStopIndex + 1].title}`);
+        if (progress.completed) {
+          journeyMetrics.textContent = 'Спасибо за прогулку'; journeyNote.textContent = '↻ — начать сначала';
+        } else if (nextStopIndex === 0) {
+          journeyMetrics.textContent = progress.mode === 'at-start' ? 'Вы у начала маршрута' : 'Начните у первой остановки';
+          journeyNote.textContent = progress.mode === 'imprecise' ? 'GPS неточный · этапы можно листать вручную' : 'Нажмите →, когда будете готовы идти дальше';
+        } else {
+          const metres = progress.remainingMeters ?? progress.distanceMeters;
+          const formatted = metres >= 1000 ? `${(metres / 1000).toLocaleString('ru-RU', {maximumFractionDigits: 1})} км` : `${Math.max(5, Math.round(metres / (metres < 100 ? 5 : 10)) * (metres < 100 ? 5 : 10))} м`;
+          const minutes = progress.estimatedMinutes < 1 ? '< 1 мин' : `≈ ${Math.ceil(progress.estimatedMinutes)} мин`;
+          journeyMetrics.textContent = progress.mode === 'at-approach' ? 'Подход к остановке рядом' : `≈ ${formatted} · ${minutes}`;
+          journeyNote.textContent = ({remaining: 'Осталось по линии до подхода · пешком', 'at-approach': 'Переключите этап, когда будете готовы', imprecise: 'Весь участок · GPS неточный', 'off-route': 'Весь участок · вы вне выбранного участка', ambiguous: 'Весь участок · положение неоднозначно'})[progress.mode] || `От остановки ${number(stops[nextStopIndex - 1].order)} · пешком`;
+        }
+        measureFooter();
+      }
+      function fitNextStop() {
+        const s = stops[nextStopIndex];
+        if (!s) { fitRoute(); return; }
+        const leg = navigation.geometryFor(nextStopIndex);
+        const points = leg ? leg.geometry.coordinates : [s.approachCoordinates || s.coordinates];
+        const activeBounds = points.reduce((b, point) => b.extend(point), new maplibregl.LngLatBounds());
+        activeBounds.extend(s.coordinates);
+        if (nextStopIndex) activeBounds.extend(stops[nextStopIndex - 1].coordinates);
+        const r = canvas.getBoundingClientRect(), footer = measureFooter();
+        if (r.width < 100 || r.height < 160) return;
+        const top = Math.min(footer.top + 12, r.height - 100);
+        map.fitBounds(activeBounds, {padding: {top, left: sidePadding(r.width), right: sidePadding(r.width), bottom: Math.max(0, Math.min(footer.bottom + 16, r.height - top - 80))}, maxZoom: 17.5, duration: reducedMotion() ? 0 : 350});
+      }
+      function setNextStop(id) {
+        if (destroyed || !navigation) return false;
+        const index = stops.findIndex(s => s.id === id);
+        if (index < 0) return false;
+        nextStopIndex = index; locationFollow = false; overview = false;
+        hideCard(); renderJourney(); renderNextLeg(); fitNextStop();
+        return true;
+      }
+      function stepJourney(direction) {
+        if (destroyed || !navigation) return;
+        nextStopIndex = nextStopIndex === stops.length && direction > 0 ? 0 : Math.max(0, Math.min(stops.length, nextStopIndex + direction));
+        locationFollow = false; overview = false;
+        hideCard(); renderJourney(); renderNextLeg(); fitNextStop();
+      }
+      function renderNextLeg() {
+        if (!map.getStyle()?.layers || !map.getSource('bspm-route')) return;
+        const feature = navigation?.geometryFor(nextStopIndex);
+        const data = {type: 'FeatureCollection', features: feature ? [feature] : []};
+        if (map.getSource('bspm-next-leg')) map.getSource('bspm-next-leg').setData(data);
+        else {
+          map.addSource('bspm-next-leg', {type: 'geojson', data});
+          map.addLayer({id: 'bspm-next-leg-line', type: 'line', source: 'bspm-next-leg', layout: {'line-join': 'round', 'line-cap': 'round'}, paint: {'line-color': '#39412C', 'line-width': 3}}, 'bspm-leaders');
+        }
       }
       function fitRoute({animate = true, keepCard = false} = {}) {
         if (destroyed) return;
@@ -164,6 +242,7 @@
         locateButton.setAttribute('aria-busy', String(next === 'requesting'));
         locateButton.title = locationWatch === null ? 'Показать моё местоположение' : 'Вернуться к моему местоположению';
         locationStop.setAttribute('aria-label', locationWatch === null ? 'Закрыть сообщение' : 'Выключить геолокацию');
+        renderJourney();
         measureFooter();
         if (popup) scheduleVisibility();
       }
@@ -350,8 +429,12 @@
         if (s.approachNote || s.id === 'psychology') {
           const note = document.createElement('p'); note.className = 'bspm-popup-note'; note.textContent = s.approachNote || s.note; card.append(note);
         }
+        if (navigation) {
+          const go = document.createElement('button'); go.type = 'button'; go.className = 'bspm-popup-go';
+          go.textContent = 'Идти к этой остановке'; go.onclick = () => setNextStop(id); card.append(go);
+        }
         const close = document.createElement('button'); close.type = 'button'; close.className = 'bspm-popup-close'; close.textContent = '×'; close.setAttribute('aria-label', 'Закрыть карточку'); close.onclick = hideCard; card.append(close);
-        root.append(card); popup = card; overlayObserver.observe(card); measureFooter(); scheduleVisibility();
+        root.append(card); popup = card; renderJourney(); overlayObserver.observe(card); measureFooter(); scheduleVisibility();
         if (notify && changed) {
           options.onStopSelect?.(id);
           container.dispatchEvent(new CustomEvent('bespokoistvo:stopselect', {bubbles: true, detail: {id, order: s.order, coordinates: [...s.coordinates]}}));
@@ -391,6 +474,7 @@
         map.addLayer({id: 'bspm-route-line', type: 'line', source: 'bspm-route', layout: {'line-join': 'round', 'line-cap': 'round'}, paint: {'line-color': '#E8B4C7', 'line-width': 4.5}}, 'bspm-leaders');
         map.addSource('bspm-route-approaches', {type: 'geojson', data: {type: 'FeatureCollection', features: stops.filter(s => s.approachCoordinates).map(s => ({type: 'Feature', properties: {id: s.id}, geometry: {type: 'Point', coordinates: s.approachCoordinates}}))}});
         map.addLayer({id: 'bspm-route-approach-dots', type: 'circle', source: 'bspm-route-approaches', paint: {'circle-radius': 3.5, 'circle-color': '#FFF8EE', 'circle-stroke-width': 1.2, 'circle-stroke-color': '#39412C'}}, 'bspm-leaders');
+        renderNextLeg();
       }
       function installStopLabels() {
         // Прозрачная область 48×48 резервирует место для DOM-номера в механизме коллизий SDK.
@@ -417,7 +501,7 @@
         measureFooter();
         if (overview) fitRoute({animate: false, keepCard: Boolean(popup)}); else scheduleVisibility();
       });
-      overlayObserver.observe(root.querySelector('.maplibregl-ctrl-attrib')); overlayObserver.observe(routeNote); overlayObserver.observe(locationStatus);
+      overlayObserver.observe(root.querySelector('.maplibregl-ctrl-attrib')); overlayObserver.observe(routeNote); overlayObserver.observe(locationStatus); overlayObserver.observe(journey);
       const resizeObserver = new ResizeObserver(() => {
         cancelAnimationFrame(resizeFrame);
         resizeFrame = requestAnimationFrame(() => {
@@ -440,6 +524,9 @@
       fitButton.onclick = () => fitRoute();
       locateButton.onclick = locate;
       locationStop.onclick = stopLocation;
+      journeyPrev.onclick = () => stepJourney(-1);
+      journeyNext.onclick = () => stepJourney(1);
+      journeyTarget.onclick = () => { if (stops[nextStopIndex]) selectStop(stops[nextStopIndex].id); };
       retryButton.onclick = () => {
         if (destroyed) return;
         loaded = false; setState('loading', 'Загружаем карту Москвы', 'Повторно запрашиваем улицы и здания.');
@@ -454,7 +541,8 @@
         routeState = bundle.status; routeGeometry = bundle.geometry;
         if (routeGeometry) {
           routeGeometry.features.forEach(f => f.geometry.coordinates.forEach(p => bounds.extend(p)));
-          routeNote.textContent = 'Пешеходный маршрут · 8 остановок'; installRoute();
+          navigation = window.BespokoistvoRoute.createNavigation(routeGeometry, stops);
+          routeNote.textContent = 'Пешеходный маршрут · 8 остановок'; renderJourney(); installRoute(); renderNextLeg();
           if (overview) fitRoute({animate: false, keepCard: Boolean(popup)});
         } else routeNote.textContent = 'Пешая линия пока не добавлена';
       }).catch(error => {
@@ -462,8 +550,8 @@
         routeState = 'error'; routeNote.textContent = 'Не удалось загрузить сохранённый маршрут';
       });
       const api = Object.freeze({
-        ready, selectStop, fitRoute,
-        getStatus: () => ({basemap: status, selectedStop: selected, route: routeState, overview, geolocation: {state: locationState, watching: locationWatch !== null, following: locationFollow}, zoom: map.getZoom(), center: map.getCenter().toArray(), destroyed}),
+        ready, selectStop, fitRoute, setNextStop,
+        getStatus: () => ({basemap: status, selectedStop: selected, route: routeState, overview, navigation: navigationStatus(), geolocation: {state: locationState, watching: locationWatch !== null, following: locationFollow}, zoom: map.getZoom(), center: map.getCenter().toArray(), destroyed}),
         destroy() {
           if (destroyed) return;
           stopLocation(); destroyed = true;
@@ -471,7 +559,8 @@
           clearTimeout(loadTimer); cancelAnimationFrame(layoutFrame); cancelAnimationFrame(resizeFrame); cancelAnimationFrame(visibilityFrame);
           resizeObserver.disconnect(); overlayObserver.disconnect(); popup?.remove();
           markers.forEach(m => m.marker.remove()); illustrations.forEach(m => m.marker.remove());
-          fitButton.onclick = null; retryButton.onclick = null; locateButton.onclick = null; locationStop.onclick = null; map.remove(); host.remove();
+          fitButton.onclick = null; retryButton.onclick = null; locateButton.onclick = null; locationStop.onclick = null;
+          journeyPrev.onclick = null; journeyNext.onclick = null; journeyTarget.onclick = null; map.remove(); host.remove();
           if (!settled) { settled = true; rejectReady(new Error('Компонент удалён до загрузки карты.')); }
         }
       });

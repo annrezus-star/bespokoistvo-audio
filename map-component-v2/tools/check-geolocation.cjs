@@ -59,7 +59,17 @@ async function waitActive(page) {
     const overviewStatus = await page.evaluate(() => moscowMap.getStatus());
     assert.equal(overviewStatus.overview, true, 'Overview is not interrupted by fresh GPS');
     assert.equal(overviewStatus.geolocation.following, false);
-    assert(Math.abs(overviewStatus.center[0] - overviewCenter[0]) < .00001 && Math.abs(overviewStatus.center[1] - overviewCenter[1]) < .0002, 'Only status-height padding can adjust overview');
+    assert(Math.abs(overviewStatus.center[0] - overviewCenter[0]) < .00001, 'GPS must not recenter the overview horizontally');
+    // Header and journey heights can legitimately change the fitted latitude.
+    await page.waitForFunction(async () => {
+      const shadow = document.querySelector('.bspm-host').shadowRoot;
+      const top = shadow.querySelector('.bspm-location-status').getBoundingClientRect().bottom;
+      const bottom = shadow.querySelector('.bspm-journey').getBoundingClientRect().top;
+      const data = await observedMap.getSource('bspm-route').getData();
+      return data.features.flatMap(f => f.geometry.coordinates).every(point => {
+        const y = observedMap.project(point).y; return y >= top && y <= bottom;
+      });
+    });
     await page.locator('.bspm-locate').click(); await waitActive(page);
     await page.waitForFunction(() => Math.abs(moscowMap.getStatus().center[0] - 37.6007) < .00001);
     assert.equal(await page.evaluate(() => geoCalls.length), 1, 'Recenter does not create another watch');
