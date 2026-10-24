@@ -29,14 +29,20 @@
       root.className = 'bspm-root bspm-pending';
       root.style.cssText = 'position:relative;width:100%;height:100%;overflow:hidden';
       root.setAttribute('aria-label', 'Карта остановок прогулки');
-      root.innerHTML = '<div class="bspm-canvas" style="position:absolute;inset:0"></div><button class="bspm-fit" type="button" aria-label="Показать весь маршрут"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4V9M15 4H20V9M4 15V20H9M20 15V20H15"/></svg>Весь маршрут</button><div class="bspm-route-note">Пешая линия пока не добавлена</div><div class="bspm-state" role="status"><strong>Загружаем карту Москвы</strong><p>Улицы и здания — OpenFreeMap / OpenStreetMap.</p><button type="button" hidden>Повторить</button></div>';
+      root.innerHTML = '<div class="bspm-canvas" style="position:absolute;inset:0"></div><div class="bspm-tools"><button class="bspm-fit" type="button" aria-label="Показать весь маршрут"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4V9M15 4H20V9M4 15V20H9M20 15V20H15"/></svg>Весь маршрут</button><button class="bspm-locate" type="button" aria-label="Показать моё местоположение" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><path d="M12 2V6M12 18V22M2 12H6M18 12H22"/></svg>Где я</button></div><div class="bspm-location-status" hidden><span role="status" aria-live="polite" aria-atomic="true"></span><button type="button" aria-label="Выключить геолокацию">×</button></div><div class="bspm-route-note">Пешая линия пока не добавлена</div><div class="bspm-state" role="status"><strong>Загружаем карту Москвы</strong><p>Улицы и здания — OpenFreeMap / OpenStreetMap.</p><button type="button" hidden>Повторить</button></div>';
       shadow.append(root); container.append(host);
       const canvas = root.querySelector('.bspm-canvas');
       const stateBox = root.querySelector('.bspm-state');
       const fitButton = root.querySelector('.bspm-fit');
       const retryButton = stateBox.querySelector('button');
       const routeNote = root.querySelector('.bspm-route-note');
+      const locateButton = root.querySelector('.bspm-locate');
+      const locationStatus = root.querySelector('.bspm-location-status');
+      const locationMessage = locationStatus.querySelector('span');
+      const locationStop = locationStatus.querySelector('button');
       let destroyed = false, selected = null, popup = null, loaded = false, overview = true;
+      let locationWatch = null, locationSession = 0, locationTimer = 0, locationPosition = null;
+      let locationState = 'idle', locationFollow = false;
       const routeAbort = new AbortController();
       let routeState = 'loading', routeGeometry = null;
       let status = 'loading', settled = false, layoutFrame = 0, resizeFrame = 0, visibilityFrame = 0, loadTimer = 0;
@@ -95,7 +101,9 @@
         const noteHeight = Math.ceil(routeNote.getBoundingClientRect().height || 22);
         const bottom = height + noteHeight + 24;
         root.style.setProperty('--bspm-card-bottom', `${bottom}px`);
-        return {height, bottom};
+        const top = locationStatus.hidden ? 70 : Math.max(70, Math.ceil(locationStatus.getBoundingClientRect().bottom - root.getBoundingClientRect().top) + 12);
+        root.style.setProperty('--bspm-top-space', `${top}px`);
+        return {height, bottom, top};
       }
       function hideCard() {
         if (!popup) return;
@@ -103,16 +111,137 @@
       }
       function fitRoute({animate = true, keepCard = false} = {}) {
         if (destroyed) return;
+        locationFollow = false;
         if (!keepCard) hideCard();
         overview = true;
         const footer = measureFooter(), r = canvas.getBoundingClientRect();
         if (r.width < 100 || r.height < 160) return;
         const bottom = popup ? r.bottom - popup.getBoundingClientRect().top + 30 : footer.bottom + 24;
+        const top = Math.min(footer.top + 12, r.height - 100);
         map.fitBounds(bounds, {
-          padding: {top: 82, right: sidePadding(r.width), bottom: Math.min(bottom, r.height - 140), left: sidePadding(r.width)},
+          padding: {top, right: sidePadding(r.width), bottom: Math.max(0, Math.min(bottom, r.height - top - 80)), left: sidePadding(r.width)},
           maxZoom: 20, linear: true, duration: animate && !reducedMotion() ? 350 : 0
         });
         scheduleLayout();
+      }
+      // Координаты участника существуют только в памяти этой вкладки. Никаких fetch/postMessage с ними нет.
+      function locationData() {
+        if (!locationPosition || locationState !== 'active') return {type: 'FeatureCollection', features: []};
+        const {coordinates, accuracy} = locationPosition;
+        const features = [{type: 'Feature', properties: {}, geometry: {type: 'Point', coordinates}}];
+        // Окружность на сфере: accuracy в метрах, а не постоянное число экранных пикселей.
+        if (accuracy > 0 && accuracy < Math.PI * 6371008.8) {
+          const latitude = coordinates[1] * Math.PI / 180, longitude = coordinates[0] * Math.PI / 180;
+          const distance = accuracy / 6371008.8, ring = [];
+          for (let i = 0; i <= 64; i++) {
+            const bearing = i * 2 * Math.PI / 64;
+            const lat = Math.asin(Math.sin(latitude) * Math.cos(distance) + Math.cos(latitude) * Math.sin(distance) * Math.cos(bearing));
+            const lon = longitude + Math.atan2(Math.sin(bearing) * Math.sin(distance) * Math.cos(latitude), Math.cos(distance) - Math.sin(latitude) * Math.sin(lat));
+            ring.push([lon * 180 / Math.PI, lat * 180 / Math.PI]);
+          }
+          ring[64] = [...ring[0]];
+          features.unshift({type: 'Feature', properties: {}, geometry: {type: 'Polygon', coordinates: [ring]}});
+        }
+        return {type: 'FeatureCollection', features};
+      }
+      function renderLocation() {
+        if (map.getStyle()?.layers) map.getSource('bspm-location')?.setData(locationData());
+      }
+      function installLocation() {
+        if (map.getSource('bspm-location')) return;
+        map.addSource('bspm-location', {type: 'geojson', data: locationData()});
+        const before = map.getLayer('bspm-route-outline') ? 'bspm-route-outline' : 'bspm-leaders';
+        map.addLayer({id: 'bspm-location-accuracy', type: 'fill', source: 'bspm-location', filter: ['==', ['geometry-type'], 'Polygon'], paint: {'fill-color': '#CCD5AE', 'fill-opacity': .35}}, before);
+        map.addLayer({id: 'bspm-location-accuracy-edge', type: 'line', source: 'bspm-location', filter: ['==', ['geometry-type'], 'Polygon'], paint: {'line-color': '#39412C', 'line-width': 1, 'line-opacity': .4}}, before);
+        map.addLayer({id: 'bspm-location-halo', type: 'circle', source: 'bspm-location', filter: ['==', ['geometry-type'], 'Point'], paint: {'circle-radius': 13, 'circle-color': '#E8B4C7', 'circle-opacity': .6}});
+        map.addLayer({id: 'bspm-location-dot', type: 'circle', source: 'bspm-location', filter: ['==', ['geometry-type'], 'Point'], paint: {'circle-radius': 7, 'circle-color': '#39412C', 'circle-stroke-width': 3, 'circle-stroke-color': '#FFF8EE'}});
+      }
+      function setLocationState(next, message = '') {
+        locationState = next;
+        locationStatus.hidden = !message;
+        if (locationMessage.textContent !== message) locationMessage.textContent = message;
+        locateButton.setAttribute('aria-pressed', String(locationWatch !== null));
+        locateButton.setAttribute('aria-busy', String(next === 'requesting'));
+        locateButton.title = locationWatch === null ? 'Показать моё местоположение' : 'Вернуться к моему местоположению';
+        locationStop.setAttribute('aria-label', locationWatch === null ? 'Закрыть сообщение' : 'Выключить геолокацию');
+        measureFooter();
+        if (popup) scheduleVisibility();
+      }
+      function stopLocation() {
+        locationSession++;
+        if (locationWatch !== null) navigator.geolocation.clearWatch(locationWatch);
+        locationWatch = null; locationPosition = null; locationFollow = false;
+        clearTimeout(locationTimer); renderLocation(); setLocationState('idle');
+      }
+      function centerLocation(initial = false) {
+        if (!locationPosition || locationState !== 'active' || !locationFollow) return;
+        overview = false;
+        map.easeTo({center: locationPosition.coordinates, zoom: initial ? Math.max(map.getZoom(), 16.5) : map.getZoom(), duration: reducedMotion() ? 0 : 300});
+      }
+      function locationFailure(error) {
+        clearTimeout(locationTimer); locationPosition = null; renderLocation();
+        if (error.code === 1) {
+          stopLocation();
+          setLocationState('error', 'Доступ к местоположению закрыт. Разрешите его в настройках браузера и нажмите «Где я».');
+        } else {
+          setLocationState('error', error.code === 3
+            ? 'Положение пока не определено. Ждём сигнал; нажмите «Где я», чтобы повторить.'
+            : 'Не удалось определить положение. Проверьте геолокацию устройства и нажмите «Где я».');
+        }
+      }
+      function receiveLocation(position) {
+        const {longitude, latitude, accuracy} = position.coords || {};
+        if (![longitude, latitude, accuracy, position.timestamp].every(Number.isFinite) || Math.abs(longitude) > 180 || Math.abs(latitude) > 90 || accuracy < 0) {
+          locationFailure({code: 2}); return;
+        }
+        const age = Date.now() - position.timestamp;
+        if (age > 45000) { locationFailure({code: 3}); return; }
+        clearTimeout(locationTimer);
+        const first = !locationPosition || locationState !== 'active';
+        locationPosition = {coordinates: [longitude, latitude], accuracy};
+        const outside = Math.abs(latitude) > 85 || (!options.liveBasemap && !map.getMaxBounds().contains(locationPosition.coordinates));
+        const precision = accuracy >= 1000 ? `${(accuracy / 1000).toLocaleString('ru-RU', {maximumFractionDigits: 1})} км` : `${Math.ceil(accuracy)} м`;
+        setLocationState(outside ? 'outside' : 'active', outside
+          ? `Вы вне района карты прогулки. Точность ±${precision}.`
+          : `${accuracy > 100 ? 'Положение приблизительное' : 'Вы на карте'} · точность ±${precision}.`);
+        renderLocation(); centerLocation(first);
+        const session = locationSession;
+        locationTimer = setTimeout(() => {
+          if (destroyed || session !== locationSession) return;
+          locationPosition = null; renderLocation();
+          setLocationState('error', 'Положение не обновлялось. Ожидаем новый сигнал; «Где я» повторит поиск.');
+        }, Math.max(0, 45000 - Math.max(0, age)));
+      }
+      function locate() {
+        if (destroyed) return;
+        if (!window.isSecureContext) {
+          setLocationState('error', 'Для геолокации откройте карту по HTTPS.'); return;
+        }
+        if (!navigator.geolocation) {
+          setLocationState('unsupported', 'Этот браузер не поддерживает геолокацию. Откройте карту в браузере телефона.'); return;
+        }
+        const policy = document.permissionsPolicy || document.featurePolicy;
+        if (policy?.allowsFeature && !policy.allowsFeature('geolocation')) {
+          setLocationState('error', 'Встроенная страница блокирует геолокацию. Откройте карту отдельно или разрешите геолокацию в настройках встраивания.'); return;
+        }
+        hideCard(); overview = false; locationFollow = true;
+        if (locationWatch !== null && locationPosition) { centerLocation(true); return; }
+        if (locationWatch !== null && locationState === 'requesting') return;
+        stopLocation(); locationFollow = true;
+        const session = locationSession;
+        setLocationState('requesting', 'Разрешите доступ в браузере. Ищем положение; × выключит геолокацию.');
+        try {
+          const watch = navigator.geolocation.watchPosition(
+            position => { if (!destroyed && session === locationSession) receiveLocation(position); },
+            error => { if (!destroyed && session === locationSession) locationFailure(error); },
+            {enableHighAccuracy: true, maximumAge: 5000, timeout: 20000}
+          );
+          if (destroyed || session !== locationSession) navigator.geolocation.clearWatch(watch);
+          else { locationWatch = watch; setLocationState(locationState, locationMessage.textContent); }
+        } catch (error) {
+          stopLocation();
+          setLocationState('error', 'Геолокация недоступна. Проверьте разрешение браузера и нажмите «Где я».');
+        }
       }
       function setState(next, title = '', text = '') {
         status = next; stateBox.hidden = next === 'ready';
@@ -199,7 +328,8 @@
         const overlapsCard = right - dx > cardLeft - 10 && left - dx < cardRight + 10 && bottom > cardTop - 10;
         const safeBottom = overlapsCard ? cardTop - 12 : r.height - measureFooter().bottom;
         let dy = bottom > safeBottom ? bottom - safeBottom : 0;
-        if (top - dy < 70) dy = top - 70;
+        const safeTop = measureFooter().top;
+        if (top - dy < safeTop) dy = top - safeTop;
         if (Math.abs(dx) > .5 || Math.abs(dy) > .5) map.panBy([dx, dy], {duration: reducedMotion() ? 0 : 260});
       }
       function scheduleVisibility() {
@@ -209,7 +339,7 @@
       function selectStop(id, {notify = true} = {}) {
         if (destroyed) return false;
         const s = stops.find(s => s.id === id); if (!s) return false;
-        const changed = selected !== id; selected = id; overview = false;
+        const changed = selected !== id; selected = id; overview = false; locationFollow = false;
         markers.forEach(item => item.button.setAttribute('aria-pressed', String(item.s.id === id)));
         hideCard();
         const card = document.createElement('div'); card.className = 'bspm-tooltip'; card.setAttribute('role', 'status');
@@ -279,7 +409,7 @@
         map.addSource('bspm-anchors', {type: 'geojson', data: {type: 'FeatureCollection', features: []}});
         map.addLayer({id: 'bspm-leaders', type: 'line', source: 'bspm-anchors', filter: ['==', ['geometry-type'], 'LineString'], paint: {'line-color': '#626653', 'line-width': 1, 'line-opacity': .65}});
         map.addLayer({id: 'bspm-anchor-dots', type: 'circle', source: 'bspm-anchors', filter: ['==', ['geometry-type'], 'Point'], paint: {'circle-radius': 2.2, 'circle-color': '#39412C', 'circle-stroke-width': 1, 'circle-stroke-color': '#FFF8EE'}});
-        installRoute(); installStopLabels();
+        installRoute(); installStopLabels(); installLocation();
         if (overview) fitRoute({animate: false}); else scheduleVisibility();
         scheduleLayout();
       }
@@ -287,7 +417,7 @@
         measureFooter();
         if (overview) fitRoute({animate: false, keepCard: Boolean(popup)}); else scheduleVisibility();
       });
-      overlayObserver.observe(root.querySelector('.maplibregl-ctrl-attrib')); overlayObserver.observe(routeNote);
+      overlayObserver.observe(root.querySelector('.maplibregl-ctrl-attrib')); overlayObserver.observe(routeNote); overlayObserver.observe(locationStatus);
       const resizeObserver = new ResizeObserver(() => {
         cancelAnimationFrame(resizeFrame);
         resizeFrame = requestAnimationFrame(() => {
@@ -298,9 +428,9 @@
       });
       resizeObserver.observe(container); resizeObserver.observe(canvas);
       map.on('style.load', onStyleLoad); map.on('idle', confirmMap); map.on('move', scheduleLayout);
-      map.on('dragstart', () => { overview = false; });
-      map.on('wheel', () => { overview = false; });
-      map.on('zoomstart', e => { if (e.originalEvent) overview = false; });
+      map.on('dragstart', () => { overview = false; locationFollow = false; });
+      map.on('wheel', () => { overview = false; locationFollow = false; });
+      map.on('zoomstart', e => { if (e.originalEvent) { overview = false; locationFollow = false; } });
       map.on('error', e => {
         if (loaded) return;
         if (e.sourceId === 'openmaptiles' || /style\.json|planet\/latest|Failed to fetch|AJAXError/.test(String(e.error?.message || ''))) {
@@ -308,6 +438,8 @@
         }
       });
       fitButton.onclick = () => fitRoute();
+      locateButton.onclick = locate;
+      locationStop.onclick = stopLocation;
       retryButton.onclick = () => {
         if (destroyed) return;
         loaded = false; setState('loading', 'Загружаем карту Москвы', 'Повторно запрашиваем улицы и здания.');
@@ -331,14 +463,15 @@
       });
       const api = Object.freeze({
         ready, selectStop, fitRoute,
-        getStatus: () => ({basemap: status, selectedStop: selected, route: routeState, overview, zoom: map.getZoom(), center: map.getCenter().toArray(), destroyed}),
+        getStatus: () => ({basemap: status, selectedStop: selected, route: routeState, overview, geolocation: {state: locationState, watching: locationWatch !== null, following: locationFollow}, zoom: map.getZoom(), center: map.getCenter().toArray(), destroyed}),
         destroy() {
-          if (destroyed) return; destroyed = true;
+          if (destroyed) return;
+          stopLocation(); destroyed = true;
           styleController.abort(); routeAbort.abort(); if (instances.get(container) === api) instances.delete(container);
           clearTimeout(loadTimer); cancelAnimationFrame(layoutFrame); cancelAnimationFrame(resizeFrame); cancelAnimationFrame(visibilityFrame);
           resizeObserver.disconnect(); overlayObserver.disconnect(); popup?.remove();
           markers.forEach(m => m.marker.remove()); illustrations.forEach(m => m.marker.remove());
-          fitButton.onclick = null; retryButton.onclick = null; map.remove(); host.remove();
+          fitButton.onclick = null; retryButton.onclick = null; locateButton.onclick = null; locationStop.onclick = null; map.remove(); host.remove();
           if (!settled) { settled = true; rejectReady(new Error('Компонент удалён до загрузки карты.')); }
         }
       });
